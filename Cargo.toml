@@ -1,0 +1,23 @@
+[package]
+name = "opengl_learn"
+version = "0.1.0"
+authors = ["Koatl"]
+edition = "2018"
+build = "gl/build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+gl_generator = "0.14.0"
+
+[dependencies.glfw]
+git = "https://github.com/bjz/glfw-rs.git"
+default-features = false
+
+[dependencies]
+image = "0.23.12"
+matrix = { path = "matrix"}
+tobj = "2.0.3"
+
+[workspace]
+members = ["matrix"]
