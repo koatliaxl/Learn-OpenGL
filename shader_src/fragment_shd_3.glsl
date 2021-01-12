@@ -48,6 +48,7 @@ uniform PointLight light;
 uniform PointLight point_lights[POINT_LIGHTS_NUM];
 uniform SpotLight flash_light;
 uniform vec3 world_up;
+uniform float time_mod;
 
 vec3 calc_point_light(PointLight pl, vec3 normal, vec3 viewer_dir);
 vec3 calc_spotlight(SpotLight sl, vec3 normal, vec3 viewer_dir);
@@ -85,9 +86,10 @@ void main() {
     total_lighting += calc_directional_light(sun, norm, viewer_dir);
 
     float ds = 0.15;
-    vec3 glow = vec3(texture(material.emission_map, Tex_coords * (1.0 + ds * 2.0) - ds));
+    vec2 emission_coords = Tex_coords * (1.0 + ds * 2.0) - ds;
+    vec3 glow = vec3(texture(material.emission_map, emission_coords));
 
-    FragColor = vec4(total_lighting + glow * 0.0, 1.0);
+    FragColor = vec4(total_lighting + glow, 1.0);
 }
 
 vec3 ambient_lighting(vec3 light);

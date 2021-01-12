@@ -3,7 +3,7 @@ use crate::state_and_cfg::{GlData, State};
 use matrix::{Matrix4x4, Vector3, Vector4};
 //use std::ffi::c_void;
 
-static LIGHTING_SCENE_ATMOSPHERE: LightingSceneAtmosphere = DEFAULT;
+static LIGHTING_SCENE_ATMOSPHERE: LightingSceneAtmosphere = DESERT;
 
 pub unsafe fn draw_lighting_scene(
     gfx: &GlData,
@@ -126,7 +126,7 @@ static DESERT: LightingSceneAtmosphere = LightingSceneAtmosphere {
         (1.0, 0.6, 0.0),
         (1.0, 0.0, 0.0),
     ],
-    ambient_to_specular_ratio: 0.2,
+    ambient_to_specular_ratio: 0.3,
 };
 #[allow(dead_code)]
 static FACTORY: LightingSceneAtmosphere =
@@ -209,7 +209,7 @@ impl LightingSceneAtmosphere {
                 light_cubes_color,
                 light_cubes_color,
             ],
-            ambient_to_specular_ratio: 0.5,
+            ambient_to_specular_ratio: 0.2,
         }
     }
     #[allow(dead_code)]

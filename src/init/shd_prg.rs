@@ -44,21 +44,20 @@ pub fn init_shader_programs() -> Vec<u32> {
             gl::FRAGMENT_SHADER,
             "Fragment Shader 3",
         );
-        let light_source_frag_shd_id = gen_shader_from_file(
-            "shader_src/light_source_frag_shd.glsl",
+        let single_color_frag_shd_id = gen_shader_from_file(
+            "shader_src/single_color_frag_shd.glsl",
             gl::FRAGMENT_SHADER,
-            "Light Source Fragment Shader",
+            "Single Color fragment shader",
         );
         let shader_program_3_id =
             gen_shader_program(vertex_shader_3_id, fragment_shader_3_id, "Shader program 3");
         gl::DeleteShader(fragment_shader_3_id);
         let light_source_shader_program_id = gen_shader_program(
             vertex_shader_3_id,
-            light_source_frag_shd_id,
+            single_color_frag_shd_id,
             "Light Source Shader program",
         );
         gl::DeleteShader(vertex_shader_3_id);
-        gl::DeleteShader(light_source_frag_shd_id);
 
         let model_vertex_shd_id = gen_shader_from_file(
             "shader_src/model_vertex_shd.glsl",
@@ -75,8 +74,28 @@ pub fn init_shader_programs() -> Vec<u32> {
             model_fragment_shd_id,
             "Model Shader program",
         );
-        gl::DeleteShader(model_vertex_shd_id);
+
         gl::DeleteShader(model_fragment_shd_id);
+
+        let depth_testing_fragment_shd = gen_shader_from_file(
+            "shader_src/depth_testing_fragment_shd.glsl",
+            gl::FRAGMENT_SHADER,
+            "Depth Testing fragment shader",
+        );
+        let depth_testing_shd_program = gen_shader_program(
+            model_vertex_shd_id,
+            depth_testing_fragment_shd,
+            "Depth Testing shader program",
+        );
+        gl::DeleteShader(depth_testing_fragment_shd);
+
+        let outlining_shd_program = gen_shader_program(
+            model_vertex_shd_id,
+            single_color_frag_shd_id,
+            "Object Outlining shader program",
+        );
+        gl::DeleteShader(model_vertex_shd_id);
+        gl::DeleteShader(single_color_frag_shd_id);
 
         vec![
             shader_program_id,
@@ -84,6 +103,8 @@ pub fn init_shader_programs() -> Vec<u32> {
             shader_program_3_id,
             light_source_shader_program_id,
             model_shader_program,
+            depth_testing_shd_program,
+            outlining_shd_program,
         ]
     }
 }

@@ -33,12 +33,21 @@ pub fn get_variable_locations(shader_programs: &Vec<GLuint>) -> Vec<HashMap<Stri
         ("flash_light.point_light.light.ambient", 2),
         ("world_up", 2),
         ("color", 3),
+        ("model_mat", 4),
         ("view_mat", 4),
         ("projection_mat", 4),
         ("viewer_position", 4),
         ("shininess", 4),
         ("diffuse_texture", 4),
         ("specular_map", 4),
+        ("model_mat", 5),
+        ("view_mat", 5),
+        ("projection_mat", 5),
+        ("depth_visualization_mode", 5),
+        ("color", 6),
+        ("model_mat", 6),
+        ("view_mat", 6),
+        ("projection_mat", 6),
     ];
     let mut variables = variables
         .iter()
@@ -62,7 +71,6 @@ pub fn get_variable_locations(shader_programs: &Vec<GLuint>) -> Vec<HashMap<Stri
     }
     println!();
     for (mut name, shader_program_index) in variables {
-        //let mut name_2 = name.to_string() + "\0";
         name += "\0";
         let var_location = unsafe {
             gl::GetUniformLocation(

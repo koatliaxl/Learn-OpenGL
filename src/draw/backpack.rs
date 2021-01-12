@@ -36,6 +36,7 @@ pub unsafe fn setup_backpack_draw(gfx: &GlData, model: &mut Model) {
     gfx.set_uniform_1f("shininess", 4, 32.0);
     gfx.set_uniform_1u("diffuse_texture", 4, 0);
     gfx.set_uniform_1u("specular_map", 4, 1);
+    gfx.set_uniform_mat4x4("model_mat", 4, &Matrix4x4::identity_matrix());
 
     gl::UseProgram(gfx.shader_programs[3]);
     let ls_scaling_mat = Matrix4x4::new_scaling(0.1, 0.1, 0.1);

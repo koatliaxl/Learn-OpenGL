@@ -4,3 +4,5 @@ gl/bindings.rs
 target/
 #*.iml
 assets/backpack/
+assets/metal.png
+assets/marble.jpg

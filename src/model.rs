@@ -111,6 +111,7 @@ impl Model {
                     gl::UNSIGNED_BYTE,
                     image.as_ptr() as *const c_void,
                 );
+                //todo - to parameters
                 let (wrap_s, wrap_t, min_filter, mag_filter) = (
                     gl::CLAMP_TO_BORDER,
                     gl::CLAMP_TO_BORDER,

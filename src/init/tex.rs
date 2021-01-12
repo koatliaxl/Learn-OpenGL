@@ -1,11 +1,13 @@
 use crate::gl;
 use crate::gl::types::GLuint;
-use crate::load_tex::generate_texture;
+use crate::load_tex::generate_gl_texture;
 
+#[allow(deprecated)]
 pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
     println!();
+    use crate::load_tex::gen_gl_tex_and_set_shd_var;
     unsafe {
-        let wall_texture_id = generate_texture(
+        let wall_texture_id = gen_gl_tex_and_set_shd_var(
             "assets/wall.jpg",
             "Wall_texture\0",
             0,
@@ -15,7 +17,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             gl::NEAREST,
             shader_programs[1],
         );
-        let awf_texture_id = generate_texture(
+        let awf_texture_id = gen_gl_tex_and_set_shd_var(
             "assets/awesomeface.png",
             "AwF_texture\0",
             1,
@@ -25,7 +27,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             gl::LINEAR,
             shader_programs[1],
         );
-        let con_texture_id = generate_texture(
+        let con_texture_id = gen_gl_tex_and_set_shd_var(
             "assets/container.jpg",
             "Con_texture\0",
             2,
@@ -35,7 +37,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             gl::LINEAR,
             shader_programs[1],
         );
-        let con2_texture_id = generate_texture(
+        let con2_texture_id = gen_gl_tex_and_set_shd_var(
             "assets/container2.png",
             "material.texture\0",
             3,
@@ -45,7 +47,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             gl::LINEAR,
             shader_programs[2],
         );
-        let con2_specular_map_id = generate_texture(
+        let con2_specular_map_id = gen_gl_tex_and_set_shd_var(
             "assets/container2_specular.png",
             "material.specular_map\0",
             4,
@@ -55,7 +57,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             gl::LINEAR,
             shader_programs[2],
         );
-        let emission_map_id = generate_texture(
+        let emission_map_id = gen_gl_tex_and_set_shd_var(
             "assets/matrix.jpg",
             "material.emission_map\0",
             5,
@@ -64,6 +66,20 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             gl::LINEAR_MIPMAP_LINEAR,
             gl::LINEAR,
             shader_programs[2],
+        );
+        let metal_texture_id = generate_gl_texture(
+            "assets/metal.png",
+            gl::REPEAT,
+            gl::REPEAT,
+            gl::LINEAR_MIPMAP_LINEAR,
+            gl::LINEAR,
+        );
+        let marble_texture_id = generate_gl_texture(
+            "assets/marble.jpg",
+            gl::CLAMP_TO_BORDER,
+            gl::CLAMP_TO_BORDER,
+            gl::LINEAR_MIPMAP_LINEAR,
+            gl::LINEAR,
         );
         /*let wall_texture_id_2 = gen_texture(
             "assets/wall.jpg",
@@ -102,6 +118,8 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             con2_texture_id,
             con2_specular_map_id,
             emission_map_id,
+            metal_texture_id,
+            marble_texture_id,
         ]
     }
 }

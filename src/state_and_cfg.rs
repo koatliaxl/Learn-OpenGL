@@ -92,6 +92,11 @@ impl GlData {
         let var_location = self.get_var_loc(name, shader_program_index);
         gl::Uniform1ui(var_location, v);
     }
+
+    pub unsafe fn set_uniform_1i(&self, name: &str, shader_program_index: usize, v: i32) {
+        let var_location = self.get_var_loc(name, shader_program_index);
+        gl::Uniform1i(var_location, v);
+    }
 }
 
 pub struct State {

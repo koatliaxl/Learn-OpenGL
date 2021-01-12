@@ -8,13 +8,14 @@ out vec3 World_Pos;
 out vec3 Normal;
 out vec2 Tex_Coords;
 
+uniform mat4 model_mat;
 uniform mat4 view_mat;
 uniform mat4 projection_mat;
 
 void main() {
-    vec4 world_pos = vec4(in_Position, 1.0);
+    vec4 world_pos = model_mat * vec4(in_Position, 1.0);
     gl_Position = projection_mat * view_mat * world_pos;
-    Normal = /*mat3(transpose(inverse(model_mat))) **/ in_Normal;
+    Normal = mat3(transpose(inverse(model_mat))) * in_Normal;
     Tex_Coords = in_Tex_Coords;
     World_Pos = world_pos.xyz;
 }
