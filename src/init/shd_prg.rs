@@ -94,9 +94,20 @@ pub fn init_shader_programs() -> Vec<u32> {
             single_color_frag_shd_id,
             "Object Outlining shader program",
         );
-        gl::DeleteShader(model_vertex_shd_id);
         gl::DeleteShader(single_color_frag_shd_id);
 
+        let blending_frag_shd = gen_shader_from_file(
+            "shader_src/blending_frag_shd.glsl",
+            gl::FRAGMENT_SHADER,
+            "Blending fragment shader",
+        );
+        let blending_shd_program = gen_shader_program(
+            model_vertex_shd_id,
+            blending_frag_shd,
+            "Blending shader program",
+        );
+        gl::DeleteShader(model_vertex_shd_id);
+        gl::DeleteShader(blending_frag_shd);
         vec![
             shader_program_id,
             shader_program_2_id,
@@ -105,6 +116,7 @@ pub fn init_shader_programs() -> Vec<u32> {
             model_shader_program,
             depth_testing_shd_program,
             outlining_shd_program,
+            blending_shd_program,
         ]
     }
 }

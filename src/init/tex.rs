@@ -81,6 +81,20 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             gl::LINEAR_MIPMAP_LINEAR,
             gl::LINEAR,
         );
+        /*let grass_texture_id = generate_gl_texture(
+            "assets/grass.png",
+            gl::CLAMP_TO_EDGE,
+            gl::CLAMP_TO_EDGE,
+            gl::LINEAR_MIPMAP_LINEAR,
+            gl::LINEAR,
+        );*/
+        let window_texture_id = generate_gl_texture(
+            "assets/blending_transparent_window.png",
+            gl::CLAMP_TO_EDGE,
+            gl::CLAMP_TO_EDGE,
+            gl::LINEAR_MIPMAP_LINEAR,
+            gl::LINEAR,
+        );
         /*let wall_texture_id_2 = gen_texture(
             "assets/wall.jpg",
             "Wall_texture\0",
@@ -120,6 +134,8 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> Vec<GLuint> {
             emission_map_id,
             metal_texture_id,
             marble_texture_id,
+            //grass_texture_id,
+            window_texture_id,
         ]
     }
 }

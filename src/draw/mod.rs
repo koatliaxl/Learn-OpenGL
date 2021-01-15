@@ -1,19 +1,19 @@
 mod backpack;
+mod blending;
 mod cubes;
 mod depth_texting;
 mod lighting;
+mod stencil_testing;
 
-use crate::draw::depth_texting::*;
+use self::cubes::draw_cubes;
+use self::{backpack::*, blending::*, depth_texting::*, lighting::*, stencil_testing::*};
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
 use ::opengl_learn::Model;
-use backpack::*;
-use cubes::draw_cubes;
-use lighting::*;
 use matrix::Matrix4x4;
 use Draw::*;
 
-static DRAW: Draw = StencilTestingScene;
+static DRAW: Draw = BlendingScene;
 
 #[allow(unused)]
 enum Draw {
@@ -23,6 +23,7 @@ enum Draw {
     Backpack,
     DepthTestingScene,
     StencilTestingScene,
+    BlendingScene,
     TextureMinFilterTest,
 }
 
@@ -57,20 +58,14 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
                 &projection_mat,
                 state, /* Rustfmt force vertical formatting */
             ),
-            DepthTestingScene => draw_depth_or_stencil_testing_scene(
+            DepthTestingScene => draw_depth_testing_scene(
                 &gfx,
                 &view_mat,
                 &projection_mat,
-                false, /* Rustfmt force vertical formatting */
-                1,
+                1, /* Rustfmt force vertical formatting */
             ),
-            StencilTestingScene => draw_depth_or_stencil_testing_scene(
-                &gfx,
-                &view_mat,
-                &projection_mat,
-                true, /* Rustfmt force vertical formatting */
-                0,
-            ),
+            StencilTestingScene => draw_stencil_testing_scene(&gfx, &view_mat, &projection_mat),
+            BlendingScene => draw_blending_scene(&gfx, &view_mat, &projection_mat, &state),
             _ => {}
         }
     }
@@ -87,9 +82,29 @@ pub fn init_draw(gfx: &GlData, model: &mut Model) {
             Backpack => setup_backpack_draw(gfx, model),
             DepthTestingScene => setup_depth_testing_scene(),
             StencilTestingScene => setup_stencil_testing_scene(),
+            BlendingScene => setup_blending_scene(),
             _ => {}
         }
     }
+}
+
+unsafe fn draw_floor(gfx: &GlData, shader_program_idx: usize) {
+    let mut model_mat = Matrix4x4::new_scaling(10.0, 10.0, 0.0);
+    model_mat = Matrix4x4::new_x_rotation(90.0) * model_mat;
+    model_mat = Matrix4x4::new_translation(0.0, -0.5, 0.0) * model_mat;
+    gfx.set_uniform_mat4x4("model_mat", shader_program_idx, &model_mat);
+    gl::DrawArrays(gl::TRIANGLES, 0, 6);
+}
+
+unsafe fn draw_two_containers(gfx: &GlData, shader_program_idx: usize, scale: f32) {
+    let scaling_mat = Matrix4x4::new_scaling(scale, scale, scale);
+    let mut model_mat;
+    model_mat = Matrix4x4::new_translation(-1.0, 0.001, -1.0) * &scaling_mat;
+    gfx.set_uniform_mat4x4("model_mat", shader_program_idx, &model_mat);
+    gl::DrawArrays(gl::TRIANGLES, 0, 36);
+    model_mat = Matrix4x4::new_translation(2.0, 0.001, 0.0) * scaling_mat;
+    gfx.set_uniform_mat4x4("model_mat", shader_program_idx, &model_mat);
+    gl::DrawArrays(gl::TRIANGLES, 0, 36);
 }
 
 #[allow(dead_code)]
