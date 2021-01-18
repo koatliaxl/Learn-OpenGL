@@ -1,10 +1,7 @@
 use crate::gl;
 use crate::gl::types::{GLfloat, GLint, GLuint};
-use std::ffi::c_void;
-
-/*const SIZE_OF_GL_FLOAT: isize = std::mem::size_of::<GLfloat>() as isize;
-const SIZE_OF_GL_UNSIGNED_INT: isize = std::mem::size_of::<GLuint>() as isize;*/
 use ::opengl_learn::{SIZE_OF_GL_FLOAT, SIZE_OF_GL_UNSIGNED_INT};
+use std::ffi::c_void;
 
 pub fn init_vertex_array_objects() -> (Vec<u32>, Vec<u32>) {
     unsafe {
@@ -47,12 +44,20 @@ unsafe fn cube_2() -> (u32, u32) {
     const FACET_INDICES: usize = 6;
     let indices: [[GLuint; FACET_INDICES]; FACETS] = [
         [0, 1, 3, 1, 2, 3],
+        [4, 1, 0, 1, 4, 5],
+        [0, 3, 10, 8, 10, 3],
+        [7, 3, 2, 2, 6, 7],
+        [9, 2, 1, 2, 9, 11],
+        [7, 5, 4, 7, 6, 5],
+    ];
+    /*let indices: [[GLuint; FACET_INDICES]; FACETS] = [
+        [0, 1, 3, 1, 2, 3],
         [0, 1, 4, 1, 4, 5],
         [0, 3, 10, 3, 10, 8],
         [2, 3, 7, 2, 6, 7],
         [1, 2, 9, 2, 9, 11],
         [4, 5, 7, 5, 6, 7],
-    ];
+    ];*/
     let normals = [
         (0.0, 0.0, -1.0),
         (1.0, 0.0, 0.0),

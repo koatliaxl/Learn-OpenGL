@@ -2,18 +2,21 @@ mod backpack;
 mod blending;
 mod cubes;
 mod depth_texting;
+mod face_culling;
 mod lighting;
 mod stencil_testing;
 
 use self::cubes::draw_cubes;
-use self::{backpack::*, blending::*, depth_texting::*, lighting::*, stencil_testing::*};
+use self::{
+    backpack::*, blending::*, depth_texting::*, face_culling::*, lighting::*, stencil_testing::*,
+};
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
 use ::opengl_learn::Model;
 use matrix::Matrix4x4;
 use Draw::*;
 
-static DRAW: Draw = BlendingScene;
+static DRAW: Draw = FaceCulling;
 
 #[allow(unused)]
 enum Draw {
@@ -24,6 +27,7 @@ enum Draw {
     DepthTestingScene,
     StencilTestingScene,
     BlendingScene,
+    FaceCulling,
     TextureMinFilterTest,
 }
 
@@ -66,6 +70,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             ),
             StencilTestingScene => draw_stencil_testing_scene(&gfx, &view_mat, &projection_mat),
             BlendingScene => draw_blending_scene(&gfx, &view_mat, &projection_mat, &state),
+            FaceCulling => draw_face_culling(&gfx, &view_mat, &projection_mat),
             _ => {}
         }
     }
@@ -83,6 +88,7 @@ pub fn init_draw(gfx: &GlData, model: &mut Model) {
             DepthTestingScene => setup_depth_testing_scene(),
             StencilTestingScene => setup_stencil_testing_scene(),
             BlendingScene => setup_blending_scene(),
+            FaceCulling => setup_face_culling(),
             _ => {}
         }
     }
