@@ -12,6 +12,10 @@ pub struct GlData {
     pub textures: Vec<GLuint>,
     pub var_locations: Vec<HashMap<String, GLint>>,
     pub array_buffers: Vec<GLuint>,
+
+    pub framebuffers: Vec<GLuint>,
+    pub texture_attachments: Vec<GLuint>,
+    pub render_buffer_attachments: Vec<GLuint>,
 }
 
 impl GlData {
@@ -26,6 +30,9 @@ impl GlData {
             textures,
             var_locations,
             array_buffers,
+            framebuffers: Vec::new(),
+            texture_attachments: Vec::new(),
+            render_buffer_attachments: Vec::new(),
         }
     }
 

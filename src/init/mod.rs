@@ -27,7 +27,7 @@ pub fn init_glfw() -> (Glfw, Window, Receiver<(f64, WindowEvent)>) {
     glfw.window_hint(WindowHint::ContextVersionMinor(3));
     glfw.window_hint(WindowHint::OpenGlProfile(OpenGlProfileHint::Core));
     let (mut window, events) = glfw
-        .create_window(500, 400, "OpenGL learn", glfw::WindowMode::Windowed)
+        .create_window(600, 500, "OpenGL learn", glfw::WindowMode::Windowed)
         .expect("Failed to create GLFW window");
     window.make_current();
     window.set_key_polling(true);

@@ -18,7 +18,6 @@ pub unsafe fn draw_blending_scene(
     projection_matrix: &Matrix4x4<f32>,
     state: &State,
 ) {
-    //gl::UseProgram(gfx.shader_programs[5]);
     gl::UseProgram(gfx.shader_programs[7]);
     gfx.set_uniform_mat4x4("view_mat", 7, view_matrix);
     gfx.set_uniform_mat4x4("projection_mat", 7, projection_matrix);

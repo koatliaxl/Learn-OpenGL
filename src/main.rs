@@ -14,18 +14,20 @@ use self::process_input::process_input;
 use self::state_and_cfg::*;
 use glfw::Context;
 use opengl_learn::Model;
+//use std::ffi::c_void;
 use std::time::Instant;
 
 const _NULL: *const i32 = std::ptr::null();
+//const C_VOID_NULL: *const c_void = std::ptr::null();
 
 fn main() {
     let (mut glfw, mut window, events) = init_glfw();
     init_open_gl(&mut window);
     let mut state = State::new(window.get_size());
     let cfg = Config::new();
-    let gfx = GlData::new();
+    let mut gfx = GlData::new();
     let mut model = Model::new();
-    init_draw(&gfx, &mut model);
+    init_draw(&mut gfx, &mut model, &window);
 
     let mut last_frame_time = Instant::now();
 
@@ -48,6 +50,16 @@ fn main() {
         for id in gfx.shader_programs {
             gl::DeleteProgram(id)
         }
+        gl::DeleteTextures(gfx.textures.len() as i32, gfx.textures.as_ptr());
         model.free_gl_resources();
+        gl::DeleteFramebuffers(gfx.framebuffers.len() as i32, gfx.framebuffers.as_ptr());
+        gl::DeleteTextures(
+            gfx.texture_attachments.len() as i32,
+            gfx.texture_attachments.as_ptr(),
+        );
+        gl::DeleteRenderbuffers(
+            gfx.render_buffer_attachments.len() as i32,
+            gfx.render_buffer_attachments.as_ptr(),
+        );
     }
 }

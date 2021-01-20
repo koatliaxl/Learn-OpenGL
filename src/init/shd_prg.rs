@@ -106,8 +106,20 @@ pub fn init_shader_programs() -> Vec<u32> {
             blending_frag_shd,
             "Blending shader program",
         );
-        gl::DeleteShader(model_vertex_shd_id);
         gl::DeleteShader(blending_frag_shd);
+
+        let post_processing_frag_shd = gen_shader_from_file(
+            "shader_src/post_processing_frag_shd.glsl",
+            gl::FRAGMENT_SHADER,
+            "Post-processing fragment shader",
+        );
+        let post_processing_shd_program = gen_shader_program(
+            model_vertex_shd_id,
+            post_processing_frag_shd,
+            "Post-processing shader program",
+        );
+        gl::DeleteShader(model_vertex_shd_id);
+        gl::DeleteShader(post_processing_frag_shd);
         vec![
             shader_program_id,
             shader_program_2_id,
@@ -117,6 +129,7 @@ pub fn init_shader_programs() -> Vec<u32> {
             depth_testing_shd_program,
             outlining_shd_program,
             blending_shd_program,
+            post_processing_shd_program,
         ]
     }
 }

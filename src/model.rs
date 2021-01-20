@@ -1,4 +1,4 @@
-use crate::gl::types::GLint;
+use crate::gl::types::{GLenum, GLint};
 use crate::{gl, SIZE_OF_GL_FLOAT, SIZE_OF_GL_UNSIGNED_INT};
 use image::RgbaImage;
 use std::collections::HashMap;
@@ -88,7 +88,13 @@ impl Model {
         }
     }
 
-    pub unsafe fn load_textures_to_gl(&mut self) {
+    pub unsafe fn load_textures_to_gl(
+        &mut self,
+        wrap_s: GLenum,
+        wrap_t: GLenum,
+        min_filter: GLenum,
+        mag_filter: GLenum,
+    ) {
         for mut texture in self.textures_loaded.values_mut() {
             if let Texture {
                 gl_id: None,
@@ -110,13 +116,6 @@ impl Model {
                     gl::RGBA,
                     gl::UNSIGNED_BYTE,
                     image.as_ptr() as *const c_void,
-                );
-                //todo - to parameters
-                let (wrap_s, wrap_t, min_filter, mag_filter) = (
-                    gl::CLAMP_TO_BORDER,
-                    gl::CLAMP_TO_BORDER,
-                    gl::LINEAR_MIPMAP_LINEAR,
-                    gl::LINEAR,
                 );
                 gl::GenerateMipmap(gl::TEXTURE_2D);
                 gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, wrap_s as i32);

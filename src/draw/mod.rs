@@ -3,20 +3,23 @@ mod blending;
 mod cubes;
 mod depth_texting;
 mod face_culling;
+mod framebuffers;
 mod lighting;
 mod stencil_testing;
 
 use self::cubes::draw_cubes;
 use self::{
-    backpack::*, blending::*, depth_texting::*, face_culling::*, lighting::*, stencil_testing::*,
+    backpack::*, blending::*, depth_texting::*, face_culling::*, framebuffers::*, lighting::*,
+    stencil_testing::*,
 };
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
 use ::opengl_learn::Model;
+use glfw::Window;
 use matrix::Matrix4x4;
 use Draw::*;
 
-static DRAW: Draw = FaceCulling;
+static DRAW: Draw = FrameBuffers;
 
 #[allow(unused)]
 enum Draw {
@@ -28,6 +31,7 @@ enum Draw {
     StencilTestingScene,
     BlendingScene,
     FaceCulling,
+    FrameBuffers,
     TextureMinFilterTest,
 }
 
@@ -49,34 +53,49 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
                 draw_cubes(gfx, state, &view_mat, &projection_mat, time);
             }
             LightingScene => draw_lighting_scene(
-                &gfx,
+                gfx,
                 &view_mat,
                 &projection_mat,
                 time,
                 state, /* Rustfmt force vertical formatting */
             ),
             Backpack => draw_backpack(
-                &gfx,
+                gfx,
                 model,
                 &view_mat,
                 &projection_mat,
                 state, /* Rustfmt force vertical formatting */
             ),
             DepthTestingScene => draw_depth_testing_scene(
-                &gfx,
+                gfx,
                 &view_mat,
                 &projection_mat,
                 1, /* Rustfmt force vertical formatting */
             ),
-            StencilTestingScene => draw_stencil_testing_scene(&gfx, &view_mat, &projection_mat),
-            BlendingScene => draw_blending_scene(&gfx, &view_mat, &projection_mat, &state),
-            FaceCulling => draw_face_culling(&gfx, &view_mat, &projection_mat),
+            StencilTestingScene => draw_stencil_testing_scene(
+                gfx,
+                &view_mat,
+                &projection_mat, /* Rustfmt force vertical formatting */
+            ),
+            BlendingScene => draw_blending_scene(
+                gfx,
+                &view_mat,
+                &projection_mat,
+                &state, /* Rustfmt force vertical formatting */
+            ),
+            FaceCulling => draw_face_culling(gfx, &view_mat, &projection_mat),
+            FrameBuffers => draw_framebuffers(
+                gfx,
+                &view_mat,
+                &projection_mat,
+                PostProcessingOption::EdgeDetection,
+            ),
             _ => {}
         }
     }
 }
 
-pub fn init_draw(gfx: &GlData, model: &mut Model) {
+pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window) {
     unsafe {
         /*gl::UseProgram(gfx.shader_programs[1]);
         gl::Uniform1f(gfx.get_var_loc("Zoom", 1), 1.0);*/
@@ -89,6 +108,7 @@ pub fn init_draw(gfx: &GlData, model: &mut Model) {
             StencilTestingScene => setup_stencil_testing_scene(),
             BlendingScene => setup_blending_scene(),
             FaceCulling => setup_face_culling(),
+            FrameBuffers => setup_framebuffers(gfx, window),
             _ => {}
         }
     }

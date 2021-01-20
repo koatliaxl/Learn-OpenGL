@@ -51,6 +51,10 @@ pub fn get_variable_locations(shader_programs: &Vec<GLuint>) -> Vec<HashMap<Stri
         ("model_mat", 7),
         ("view_mat", 7),
         ("projection_mat", 7),
+        ("model_mat", 8),
+        ("view_mat", 8),
+        ("projection_mat", 8),
+        ("mode", 8),
     ];
     let mut variables = variables
         .iter()

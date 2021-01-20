@@ -27,7 +27,12 @@ pub unsafe fn draw_backpack(
 pub unsafe fn setup_backpack_draw(gfx: &GlData, model: &mut Model) {
     gl::ClearColor(0.0, 0.0, 0.0, 1.0);
     model.load_model("assets/backpack/", "backpack.obj");
-    model.load_textures_to_gl();
+    model.load_textures_to_gl(
+        gl::CLAMP_TO_BORDER,
+        gl::CLAMP_TO_BORDER,
+        gl::LINEAR_MIPMAP_LINEAR,
+        gl::LINEAR,
+    );
     model.setup_draw();
     let ls_pos = Vector3::new(1.0, 2.0, 2.0);
 
