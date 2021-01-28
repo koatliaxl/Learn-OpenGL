@@ -12,7 +12,7 @@ float sharpen_kernel[9] = float[](
     -1,  9, -1,
     -1, -1, -1
 );
-float blur_kernel[9] = float[](
+float blur_kernel[9] = float[]( // Gaussian blur 3x3
     1, 2, 1,
     2, 4, 2,
     1, 2, 1
@@ -22,8 +22,26 @@ float edge_detection_kernel[9] = float[](
     1, -8,  1,
     1,  1,  1
 );
+float emboss_kernel[9] = float[] (
+    -2, -1,  0,
+    -1,  1,  1,
+     0,  1,  2
+);
+float box_blur[9] = float[] (
+    1, 1, 1,
+    1, 1, 1,
+    1, 1, 1
+); // divide by 9
+float gaussian_blur_5x5[25] = float[] (
+    1,  4,  6,  4, 1,
+    4, 16, 24, 16, 4,
+    6, 24, 36, 24, 6,
+    4, 16, 24, 16, 4,
+    1,  4,  6,  4, 1
+) ; // divide by 256
 
 vec3 kernel(float[9] kernel);
+vec3 kernel_5x5(float[25] kernel);
 
 void main() {
     switch (mode) {
@@ -52,19 +70,28 @@ void main() {
         case 6:
             FragColor = vec4(kernel(edge_detection_kernel), 1.0);
             break;
+        case 7:
+            FragColor = vec4(kernel_5x5(gaussian_blur_5x5) / 256.0, 1.0);
+            break;
+        case 8:
+            FragColor = vec4(kernel(emboss_kernel), 1.0);
+            break;
+        case 9:
+            FragColor = vec4(kernel(box_blur) / 9.0, 1.0);
+            break;
     }
 }
 
 const float offset = 1.0 / 300.0;
 const vec2 offsets[9] = vec2[](
-    vec2(-offset,  offset), // top-left
-    vec2( 0.0f,    offset), // top-center
-    vec2( offset,  offset), // top-right
-    vec2(-offset,  0.0f),   // center-left
-    vec2( 0.0f,    0.0f),   // center-center
-    vec2( offset,  0.0f),   // center-right
+    vec2(-offset, offset), // top-left
+    vec2( 0.0,    offset), // top-center
+    vec2( offset, offset), // top-right
+    vec2(-offset, 0.0),   // center-left
+    vec2( 0.0,    0.0),   // center-center
+    vec2( offset, 0.0),   // center-right
     vec2(-offset, -offset), // bottom-left
-    vec2( 0.0f,   -offset), // bottom-center
+    vec2( 0.0,    -offset), // bottom-center
     vec2( offset, -offset)  // bottom-right
 );
 
@@ -72,6 +99,48 @@ vec3 kernel(float[9] kernel) {
     vec3 color = vec3(0.0);
     for (int i = 0; i < 9; i++) {
         vec3 samle = vec3(texture(Screen_Texture, Tex_Coords + offsets[i]));
+        color += samle * kernel[i];
+    }
+    return color;
+}
+
+const float offset_2 = offset * 2.0;
+const vec2 offsets_5x5[25] = vec2[](
+vec2(-offset_2, offset_2),
+vec2(-offset,   offset_2),
+vec2( 0.0,      offset_2),
+vec2( offset,   offset_2),
+vec2( offset_2, offset_2),
+
+vec2(-offset_2, offset),
+vec2(-offset,   offset),
+vec2( 0.0,      offset),
+vec2( offset,   offset),
+vec2( offset_2, offset),
+
+vec2(-offset_2, 0.0),
+vec2(-offset,   0.0),
+vec2( 0.0,      0.0),
+vec2( offset,   0.0),
+vec2( offset_2, 0.0),
+
+vec2(-offset_2, -offset),
+vec2(-offset,   -offset),
+vec2( 0.0,      -offset),
+vec2( offset,   -offset),
+vec2( offset_2, -offset),
+
+vec2(-offset_2, -offset_2),
+vec2(-offset,   -offset_2),
+vec2( 0.0,      -offset_2),
+vec2( offset,   -offset_2),
+vec2( offset_2, -offset_2)
+);
+
+vec3 kernel_5x5(float[25] kernel) {
+    vec3 color = vec3(0.0);
+    for (int i = 0; i < 25; i++) {
+        vec3 samle = vec3(texture(Screen_Texture, Tex_Coords + offsets_5x5[i]));
         color += samle * kernel[i];
     }
     return color;

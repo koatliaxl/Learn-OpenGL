@@ -86,9 +86,10 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             FaceCulling => draw_face_culling(gfx, &view_mat, &projection_mat),
             FrameBuffers => draw_framebuffers(
                 gfx,
-                &view_mat,
+                //&view_mat,
                 &projection_mat,
-                PostProcessingOption::EdgeDetection,
+                PostProcessingOption::None,
+                state.camera.clone(),
             ),
             _ => {}
         }

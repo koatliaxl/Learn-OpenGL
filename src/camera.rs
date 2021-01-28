@@ -1,5 +1,6 @@
 use matrix::{Matrix4x4, Vector3};
 
+#[derive(Clone)]
 pub struct Camera {
     pub position: Vector3<f32>,
     pub direction: Vector3<f32>,

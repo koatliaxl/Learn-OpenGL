@@ -29,8 +29,11 @@ pub fn init_shader_programs() -> Vec<u32> {
             gl::FRAGMENT_SHADER,
             "Fragment Shader 2",
         );
-        let shader_program_2_id =
-            gen_shader_program(vertex_shader_2_id, fragment_shader_2_id, "Shader program 2");
+        let shader_program_2_id = gen_shader_program(
+            vertex_shader_2_id,
+            fragment_shader_2_id,
+            "Shader program 2", /* Rustfmt force vertical formatting */
+        );
         gl::DeleteShader(vertex_shader_2_id);
         gl::DeleteShader(fragment_shader_2_id);
 
@@ -49,8 +52,11 @@ pub fn init_shader_programs() -> Vec<u32> {
             gl::FRAGMENT_SHADER,
             "Single Color fragment shader",
         );
-        let shader_program_3_id =
-            gen_shader_program(vertex_shader_3_id, fragment_shader_3_id, "Shader program 3");
+        let shader_program_3_id = gen_shader_program(
+            vertex_shader_3_id,
+            fragment_shader_3_id,
+            "Shader program 3", /* Rustfmt force vertical formatting */
+        );
         gl::DeleteShader(fragment_shader_3_id);
         let light_source_shader_program_id = gen_shader_program(
             vertex_shader_3_id,
