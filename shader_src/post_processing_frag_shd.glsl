@@ -7,38 +7,60 @@ out vec4 FragColor;
 uniform sampler2D Screen_Texture;
 uniform int mode;
 
-float sharpen_kernel[9] = float[](
+const float sharpen_kernel[9] = float[](
     -1, -1, -1,
     -1,  9, -1,
     -1, -1, -1
 );
-float blur_kernel[9] = float[]( // Gaussian blur 3x3
-    1, 2, 1,
-    2, 4, 2,
-    1, 2, 1
-); // divide by 16
-float edge_detection_kernel[9] = float[](
-    1,  1,  1,
-    1, -8,  1,
-    1,  1,  1
+const float sharpen_kernel_2[9] = float[](
+     0, -1,  0,
+    -1,  5, -1,
+     0, -1,  0
 );
-float emboss_kernel[9] = float[] (
-    -2, -1,  0,
-    -1,  1,  1,
-     0,  1,  2
-);
-float box_blur[9] = float[] (
+const float box_blur[9] = float[] (
     1, 1, 1,
     1, 1, 1,
     1, 1, 1
 ); // divide by 9
-float gaussian_blur_5x5[25] = float[] (
-    1,  4,  6,  4, 1,
-    4, 16, 24, 16, 4,
-    6, 24, 36, 24, 6,
-    4, 16, 24, 16, 4,
-    1,  4,  6,  4, 1
-) ; // divide by 256
+const float blur_kernel[9] = float[]( // Gaussian blur 3x3
+    1, 2, 1,
+    2, 4, 2,
+    1, 2, 1
+); // divide by 16
+const float edge_detection_kernel[9] = float[](
+    1,  1,  1,
+    1, -8,  1,
+    1,  1,  1
+);
+const float emboss_kernel[9] = float[] (
+    -2, -1,  0,
+    -1,  1,  1,
+     0,  1,  2
+);
+const float[9] custom_kernel_2 = float[] (
+     2,   2,   2,
+     2, -14,   2,
+     2,   2,   2
+); // div by 2
+const float[9] vertical_edge_detection = float[] (
+    -1,  2, -1,
+    -1,  2, -1,
+    -1,  2, -1
+);
+const float gaussian_blur_5x5[25] = float[] (
+    1,  4,  6,  4,  1,
+    4, 16, 24, 16,  4,
+    6, 24, 36, 24,  6,
+    4, 16, 24, 16,  4,
+    1,  4,  6,  4,  1
+); // divide by 256
+const float[25] custom_kernel_1 = float[] (
+     1,  1,  1,  1,  1,
+     1, -2, -2, -2,  1,
+     1, -2,  6, -2,  1,
+     1, -2, -2, -2,  1,
+     1,  1,  1,  1,  1
+);
 
 vec3 kernel(float[9] kernel);
 vec3 kernel_5x5(float[25] kernel);
@@ -79,6 +101,18 @@ void main() {
         case 9:
             FragColor = vec4(kernel(box_blur) / 9.0, 1.0);
             break;
+        case 10:
+            FragColor = vec4(kernel(sharpen_kernel_2), 1.0);
+            break;
+        case 11:
+            FragColor = vec4(kernel_5x5(custom_kernel_1), 1.0);
+            break;
+        case 12:
+            FragColor = vec4(kernel(custom_kernel_2) / 2.0, 1.0);
+            break;
+        case 13:
+            FragColor = vec4(kernel(vertical_edge_detection), 1.0);
+            break;
     }
 }
 
@@ -106,35 +140,35 @@ vec3 kernel(float[9] kernel) {
 
 const float offset_2 = offset * 2.0;
 const vec2 offsets_5x5[25] = vec2[](
-vec2(-offset_2, offset_2),
-vec2(-offset,   offset_2),
-vec2( 0.0,      offset_2),
-vec2( offset,   offset_2),
-vec2( offset_2, offset_2),
+    vec2(-offset_2, offset_2),
+    vec2(-offset,   offset_2),
+    vec2( 0.0,      offset_2),
+    vec2( offset,   offset_2),
+    vec2( offset_2, offset_2),
 
-vec2(-offset_2, offset),
-vec2(-offset,   offset),
-vec2( 0.0,      offset),
-vec2( offset,   offset),
-vec2( offset_2, offset),
+    vec2(-offset_2, offset),
+    vec2(-offset,   offset),
+    vec2( 0.0,      offset),
+    vec2( offset,   offset),
+    vec2( offset_2, offset),
 
-vec2(-offset_2, 0.0),
-vec2(-offset,   0.0),
-vec2( 0.0,      0.0),
-vec2( offset,   0.0),
-vec2( offset_2, 0.0),
+    vec2(-offset_2, 0.0),
+    vec2(-offset,   0.0),
+    vec2( 0.0,      0.0),
+    vec2( offset,   0.0),
+    vec2( offset_2, 0.0),
 
-vec2(-offset_2, -offset),
-vec2(-offset,   -offset),
-vec2( 0.0,      -offset),
-vec2( offset,   -offset),
-vec2( offset_2, -offset),
+    vec2(-offset_2, -offset),
+    vec2(-offset,   -offset),
+    vec2( 0.0,      -offset),
+    vec2( offset,   -offset),
+    vec2( offset_2, -offset),
 
-vec2(-offset_2, -offset_2),
-vec2(-offset,   -offset_2),
-vec2( 0.0,      -offset_2),
-vec2( offset,   -offset_2),
-vec2( offset_2, -offset_2)
+    vec2(-offset_2, -offset_2),
+    vec2(-offset,   -offset_2),
+    vec2( 0.0,      -offset_2),
+    vec2( offset,   -offset_2),
+    vec2( offset_2, -offset_2)
 );
 
 vec3 kernel_5x5(float[25] kernel) {

@@ -14,11 +14,15 @@ pub enum PostProcessingOption {
     Grayscale,
     GrayscalePhysicallyAccurate,
     SharpenKernel,
+    SharpenKernel2,
     GaussianBlur3x3,
     EdgeDetection,
     GaussianBlur5x5,
     EmbossKernel,
     BoxBlur,
+    CustomKernel,
+    CustomKernel2,
+    VerticalEdgeDetection,
 }
 
 pub unsafe fn draw_framebuffers(
@@ -263,17 +267,22 @@ unsafe fn create_framebuffer(
 
 impl PostProcessingOption {
     fn int_code(&self) -> i32 {
+        use PostProcessingOption::*;
         match self {
-            PostProcessingOption::None => 0,
-            PostProcessingOption::Inversion => 1,
-            PostProcessingOption::Grayscale => 2,
-            PostProcessingOption::GrayscalePhysicallyAccurate => 3,
-            PostProcessingOption::SharpenKernel => 4,
-            PostProcessingOption::GaussianBlur3x3 => 5,
-            PostProcessingOption::EdgeDetection => 6,
-            PostProcessingOption::GaussianBlur5x5 => 7,
-            PostProcessingOption::EmbossKernel => 8,
-            PostProcessingOption::BoxBlur => 9,
+            None => 0,
+            Inversion => 1,
+            Grayscale => 2,
+            GrayscalePhysicallyAccurate => 3,
+            SharpenKernel => 4,
+            GaussianBlur3x3 => 5,
+            EdgeDetection => 6,
+            GaussianBlur5x5 => 7,
+            EmbossKernel => 8,
+            BoxBlur => 9,
+            SharpenKernel2 => 10,
+            CustomKernel => 11,
+            CustomKernel2 => 12,
+            VerticalEdgeDetection => 13,
         }
     }
 }

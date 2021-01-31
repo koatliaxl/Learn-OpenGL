@@ -88,7 +88,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
                 gfx,
                 //&view_mat,
                 &projection_mat,
-                PostProcessingOption::None,
+                PostProcessingOption::CustomKernel2,
                 state.camera.clone(),
             ),
             _ => {}
