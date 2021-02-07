@@ -8,15 +8,101 @@ pub fn init_vertex_array_objects() -> (Vec<u32>, Vec<u32>) {
         let (vertex_array_obj_id, arr_buf_1_id) = triangle();
         let (vertex_array_obj_2_id, arr_buf_2_id, elem_arr_buf_1) = cube();
         let (vertex_array_obj_3_id, arr_buf_3_id) = cube_2();
+        let (vertex_array_obj_4_id, arr_buf_4_id, elem_arr_buf_2) = skybox();
         (
             vec![
                 vertex_array_obj_id,
                 vertex_array_obj_2_id,
                 vertex_array_obj_3_id,
+                vertex_array_obj_4_id,
             ],
-            vec![arr_buf_1_id, arr_buf_2_id, elem_arr_buf_1, arr_buf_3_id],
+            vec![
+                arr_buf_1_id,
+                arr_buf_2_id,
+                elem_arr_buf_1,
+                arr_buf_3_id,
+                arr_buf_4_id,
+                elem_arr_buf_2,
+            ],
         )
     }
+}
+
+unsafe fn skybox() -> (u32, u32, u32) {
+    const POS_ATTRIB_LEN: GLint = 3;
+    const VERTEX_LEN: GLint = POS_ATTRIB_LEN;
+    const VERTICES_NUM: usize = 8;
+    let vertices: [(GLfloat, GLfloat, GLfloat); VERTICES_NUM] = [
+        (1.0, 1.0, -1.0),
+        (1.0, -1.0, -1.0),
+        (-1.0, -1.0, -1.0),
+        (-1.0, 1.0, -1.0),
+        (1.0, 1.0, 1.0),
+        (1.0, -1.0, 1.0),
+        (-1.0, -1.0, 1.0),
+        (-1.0, 1.0, 1.0),
+    ];
+    const FACETS: usize = 6;
+    const INDICES_PER_FACET: usize = 6;
+    let indices: [[GLuint; INDICES_PER_FACET]; FACETS] = [
+        [0, 1, 3, 1, 2, 3],
+        [0, 1, 4, 1, 4, 5],
+        [0, 3, 4, 3, 4, 7],
+        [2, 3, 7, 2, 6, 7],
+        [1, 2, 5, 2, 5, 6],
+        [4, 5, 7, 5, 6, 7],
+    ];
+    let mut vertices_raw = [0.0; VERTEX_LEN as usize * VERTICES_NUM];
+    for n in 0..vertices.len() {
+        let (x, y, z) = vertices[n];
+        let i = n * VERTEX_LEN as usize;
+        vertices_raw[i + 0] = x;
+        vertices_raw[i + 1] = y;
+        vertices_raw[i + 2] = z;
+    }
+    let mut indices_raw = [0; FACETS * INDICES_PER_FACET];
+    for facet in 0..FACETS {
+        for vertex in 0..INDICES_PER_FACET {
+            indices_raw[facet * INDICES_PER_FACET + vertex] = indices[facet][vertex];
+        }
+    }
+
+    let mut vertex_array_obj_id = 0;
+    gl::GenVertexArrays(1, &mut vertex_array_obj_id);
+    gl::BindVertexArray(vertex_array_obj_id);
+
+    let mut vertex_buf_obj_id = 0;
+    gl::GenBuffers(1, &mut vertex_buf_obj_id);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vertex_buf_obj_id);
+    gl::BufferData(
+        gl::ARRAY_BUFFER,
+        vertices_raw.len() as isize * SIZE_OF_GL_FLOAT,
+        vertices_raw.as_ptr() as *const c_void,
+        gl::STATIC_DRAW,
+    );
+
+    let mut element_buf_obj_id = 0;
+    gl::GenBuffers(1, &mut element_buf_obj_id);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, element_buf_obj_id);
+    gl::BufferData(
+        gl::ELEMENT_ARRAY_BUFFER,
+        indices_raw.len() as isize * SIZE_OF_GL_UNSIGNED_INT,
+        indices_raw.as_ptr() as *const c_void,
+        gl::STATIC_DRAW,
+    );
+
+    const STRIDE: GLint = VERTEX_LEN * SIZE_OF_GL_FLOAT as i32;
+    gl::VertexAttribPointer(
+        0,
+        POS_ATTRIB_LEN,
+        gl::FLOAT,
+        gl::FALSE,
+        STRIDE,
+        0 as *const c_void,
+    );
+    gl::EnableVertexAttribArray(0);
+
+    (vertex_array_obj_id, vertex_buf_obj_id, element_buf_obj_id)
 }
 
 unsafe fn cube_2() -> (u32, u32) {
@@ -42,6 +128,7 @@ unsafe fn cube_2() -> (u32, u32) {
     ];
     const FACETS: usize = 6;
     const FACET_INDICES: usize = 6;
+    // Ordering applicable for face culling
     let indices: [[GLuint; FACET_INDICES]; FACETS] = [
         [0, 1, 3, 1, 2, 3],
         [4, 1, 0, 1, 4, 5],
@@ -50,14 +137,6 @@ unsafe fn cube_2() -> (u32, u32) {
         [9, 2, 1, 2, 9, 11],
         [7, 5, 4, 7, 6, 5],
     ];
-    /*let indices: [[GLuint; FACET_INDICES]; FACETS] = [
-        [0, 1, 3, 1, 2, 3],
-        [0, 1, 4, 1, 4, 5],
-        [0, 3, 10, 3, 10, 8],
-        [2, 3, 7, 2, 6, 7],
-        [1, 2, 9, 2, 9, 11],
-        [4, 5, 7, 5, 6, 7],
-    ];*/
     let normals = [
         (0.0, 0.0, -1.0),
         (1.0, 0.0, 0.0),

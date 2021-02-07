@@ -1,5 +1,6 @@
 mod backpack;
 mod blending;
+mod cubemap;
 mod cubes;
 mod depth_texting;
 mod face_culling;
@@ -9,8 +10,8 @@ mod stencil_testing;
 
 use self::cubes::draw_cubes;
 use self::{
-    backpack::*, blending::*, depth_texting::*, face_culling::*, framebuffers::*, lighting::*,
-    stencil_testing::*,
+    backpack::*, blending::*, cubemap::*, depth_texting::*, face_culling::*, framebuffers::*,
+    lighting::*, stencil_testing::*,
 };
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
@@ -19,7 +20,7 @@ use glfw::Window;
 use matrix::Matrix4x4;
 use Draw::*;
 
-static DRAW: Draw = FrameBuffers;
+static DRAW: Draw = CubeMap;
 
 #[allow(unused)]
 enum Draw {
@@ -32,6 +33,7 @@ enum Draw {
     BlendingScene,
     FaceCulling,
     FrameBuffers,
+    CubeMap,
     TextureMinFilterTest,
 }
 
@@ -91,6 +93,13 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
                 PostProcessingOption::CustomKernel2,
                 state.camera.clone(),
             ),
+            CubeMap => draw_cubemap_scene(
+                gfx,
+                &projection_mat,
+                &state.camera,
+                model,
+                EnvironmentMappingMode::Refraction,
+            ),
             _ => {}
         }
     }
@@ -110,6 +119,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window) {
             BlendingScene => setup_blending_scene(),
             FaceCulling => setup_face_culling(),
             FrameBuffers => setup_framebuffers(gfx, window),
+            CubeMap => setup_cubemap_scene(gfx, model),
             _ => {}
         }
     }

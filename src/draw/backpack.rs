@@ -5,7 +5,7 @@ use opengl_learn::Model;
 
 pub unsafe fn draw_backpack(
     gfx: &GlData,
-    model: &mut Model,
+    model: &Model,
     view_matrix: &Matrix4x4<f32>,
     projection_matrix: &Matrix4x4<f32>,
     state: &State,

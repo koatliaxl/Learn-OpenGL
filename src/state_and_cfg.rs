@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 
 pub struct GlData {
     pub shader_programs: Vec<GLuint>,
+    shader_program_indexes: HashMap<String, usize>,
     pub vertex_array_objects: Vec<GLuint>,
     pub textures: Vec<GLuint>,
     pub var_locations: Vec<HashMap<String, GLint>>,
@@ -20,12 +21,13 @@ pub struct GlData {
 
 impl GlData {
     pub fn new() -> GlData {
-        let shader_programs = init_shader_programs();
+        let (shd_program_ids, shd_programs_indexes) = init_shader_programs();
         let (vertex_array_objects, array_buffers) = init_vertex_array_objects();
-        let textures = init_textures(&shader_programs);
-        let var_locations = get_variable_locations(&shader_programs);
+        let textures = init_textures(&shd_program_ids);
+        let var_locations = get_variable_locations(&shd_program_ids);
         GlData {
-            shader_programs,
+            shader_programs: shd_program_ids,
+            shader_program_indexes: shd_programs_indexes,
             vertex_array_objects,
             textures,
             var_locations,
@@ -41,6 +43,23 @@ impl GlData {
             *loc
         } else {
             0
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn get_shader_program_id(&self, key: &str) -> GLuint {
+        if let Some(index) = self.shader_program_indexes.get(key) {
+            self.shader_programs[*index]
+        } else {
+            panic!("There is no shader program id for key: {}", key)
+        }
+    }
+
+    pub fn get_shader_program_index(&self, key: &str) -> usize {
+        if let Some(index) = self.shader_program_indexes.get(key) {
+            *index
+        } else {
+            panic!("There is no shader program index for key: {}", key)
         }
     }
 

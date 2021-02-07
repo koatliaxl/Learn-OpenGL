@@ -22,7 +22,7 @@ const float box_blur[9] = float[] (
     1, 1, 1,
     1, 1, 1
 ); // divide by 9
-const float blur_kernel[9] = float[]( // Gaussian blur 3x3
+const float gaussian_blur_3x3[9] = float[](
     1, 2, 1,
     2, 4, 2,
     1, 2, 1
@@ -87,7 +87,7 @@ void main() {
             FragColor = vec4(kernel(sharpen_kernel), 1.0);
             break;
         case 5:
-            FragColor = vec4(kernel(blur_kernel) / 16.0, 1.0);
+            FragColor = vec4(kernel(gaussian_blur_3x3) / 16.0, 1.0);
             break;
         case 6:
             FragColor = vec4(kernel(edge_detection_kernel), 1.0);
