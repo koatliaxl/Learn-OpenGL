@@ -6,12 +6,12 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
     println!();
     unsafe {
         let vertex_shader_id = gen_shader(
-            VERTEX_SHADER_SOURCE, /* Rustfmt force vertical formatting */
+            VERTEX_SHADER_1_SRC, /* Rustfmt force vertical formatting */
             gl::VERTEX_SHADER,
             "Vertex Shader",
         );
         let fragment_shader_id = gen_shader(
-            FRAGMENT_SHADER_SOURCE,
+            FRAGMENT_SHADER_1_SRC,
             gl::FRAGMENT_SHADER,
             "Fragment Shader",
         );
@@ -75,6 +75,27 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             gl::FRAGMENT_SHADER,
             "Cubemap fragment shader",
         );
+        let ubo_vertex_shd = gen_shader_from_file(
+            "shader_src/ubo_vertex_shd.glsl",
+            gl::VERTEX_SHADER,
+            "UBO Use vertex shader",
+        );
+        let ubo_frag_shd_1 = gen_shader(
+            UBO_FRAG_SHADER_SRC_1,
+            gl::FRAGMENT_SHADER,
+            "UBO Use fragment shader 1",
+        );
+        let ubo_frag_shd_2 = gen_shader(
+            UBO_FRAG_SHADER_SRC_2,
+            gl::FRAGMENT_SHADER,
+            "UBO Use fragment shader 2",
+        );
+        let ubo_frag_shd_3 = gen_shader(
+            UBO_FRAG_SHADER_SRC_3,
+            gl::FRAGMENT_SHADER,
+            "UBO Use fragment shader 3",
+        );
+
         let shader_programs = [
             (vertex_shader_id, fragment_shader_id, "Shader 1"),
             (vertex_shader_2_id, fragment_shader_2_id, "Shader 2"),
@@ -107,6 +128,9 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
                 cubemap_frag_shd,
                 "Environment Mapping shader",
             ),
+            (ubo_vertex_shd, ubo_frag_shd_1, "UBO Use shader 1"),
+            (ubo_vertex_shd, ubo_frag_shd_2, "UBO Use shader 2"),
+            (ubo_vertex_shd, ubo_frag_shd_3, "UBO Use shader 3"),
         ];
         let mut shader_program_ids = Vec::new();
         let mut shader_programs_index_keys = HashMap::new();
@@ -134,6 +158,10 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
         gl::DeleteShader(post_processing_frag_shd);
         gl::DeleteShader(cubemap_vertex_shd);
         gl::DeleteShader(cubemap_frag_shd);
+        gl::DeleteShader(ubo_vertex_shd);
+        gl::DeleteShader(ubo_frag_shd_1);
+        gl::DeleteShader(ubo_frag_shd_2);
+        gl::DeleteShader(ubo_frag_shd_3);
 
         (shader_program_ids, shader_programs_index_keys)
     }

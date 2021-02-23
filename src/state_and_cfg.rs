@@ -11,12 +11,15 @@ pub struct GlData {
     shader_program_indexes: HashMap<String, usize>,
     pub vertex_array_objects: Vec<GLuint>,
     pub textures: Vec<GLuint>,
-    pub var_locations: Vec<HashMap<String, GLint>>,
+    var_locations: Vec<HashMap<String, GLint>>,
     pub array_buffers: Vec<GLuint>,
 
     pub framebuffers: Vec<GLuint>,
     pub texture_attachments: Vec<GLuint>,
     pub render_buffer_attachments: Vec<GLuint>,
+
+    pub uniform_buffers: Vec<GLuint>,
+    uniform_buffers_indexes: HashMap<String, usize>,
 }
 
 impl GlData {
@@ -35,6 +38,8 @@ impl GlData {
             framebuffers: Vec::new(),
             texture_attachments: Vec::new(),
             render_buffer_attachments: Vec::new(),
+            uniform_buffers: Vec::new(),
+            uniform_buffers_indexes: HashMap::new(),
         }
     }
 
@@ -47,11 +52,11 @@ impl GlData {
     }
 
     #[allow(dead_code)]
-    pub fn get_shader_program_id(&self, key: &str) -> GLuint {
+    pub fn get_shader_program_gl_id(&self, key: &str) -> GLuint {
         if let Some(index) = self.shader_program_indexes.get(key) {
             self.shader_programs[*index]
         } else {
-            panic!("There is no shader program id for key: {}", key)
+            panic!("There is no shader program OpenGL id for key: {}", key)
         }
     }
 
@@ -122,6 +127,20 @@ impl GlData {
     pub unsafe fn set_uniform_1i(&self, name: &str, shader_program_index: usize, v: i32) {
         let var_location = self.get_var_loc(name, shader_program_index);
         gl::Uniform1i(var_location, v);
+    }
+
+    pub fn get_uniform_buffer_gl_id(&self, key: &str) -> GLuint {
+        if let Some(index) = self.uniform_buffers_indexes.get(key) {
+            self.uniform_buffers[*index]
+        } else {
+            panic!("There is no uniform buffer OpenGL id for key: {}", key)
+        }
+    }
+
+    pub fn insert_uniform_buffer(&mut self, ubo: GLuint, key: &str) {
+        self.uniform_buffers_indexes
+            .insert(key.to_string(), self.uniform_buffers.len());
+        self.uniform_buffers.push(ubo);
     }
 }
 

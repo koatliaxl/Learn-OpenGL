@@ -1,25 +1,10 @@
+mod shader_src;
+
+pub use shader_src::*;
+
 use crate::gl;
 use crate::gl::types::GLenum;
 use std::io::Read;
-
-pub const VERTEX_SHADER_SOURCE: &str = "
-    #version 330 core
-    layout (location=0) in vec2 pos;
-    layout (location=1) in vec3 color;
-    out vec3 vertex_color;
-    uniform float offset;
-    void main() {
-        //vec2 pos_2 = vec2(pos.x, -pos.y);
-        gl_Position = vec4(pos.x/3.0 + offset, -pos.y/3.0+0.8, 0.0, 1.0);
-        vertex_color = color;
-    }";
-pub const FRAGMENT_SHADER_SOURCE: &str = "
-    #version 330 core
-    out vec4 FragColor;
-    in vec3 vertex_color;
-    void main() {
-        FragColor = vec4(vertex_color, 0.0);
-    }";
 
 pub unsafe fn gen_shader_from_file(path: &str, shader_type: GLenum, name: &str) -> u32 {
     let mut source_file = std::fs::File::open(path).expect("Fail to open shader src file");
@@ -56,8 +41,8 @@ pub unsafe fn gen_shader(source: &str, shader_type: GLenum, name: &str) -> u32 {
 unsafe fn check_compile_status(shader_id: u32, shader_name: &str, print_source: bool) {
     let mut success = 0;
     gl::GetShaderiv(shader_id, gl::COMPILE_STATUS, &mut success);
-    println!("{1:} compile status: {0:}", success, shader_name);
-    let mut log = ['0' as u8; 512];
+    println!("\"{1:}\" compile status: {0:}", success, shader_name);
+    let mut log = ['\0' as u8; 512];
     if success == 0 {
         gl::GetShaderInfoLog(
             shader_id,
@@ -93,7 +78,7 @@ pub unsafe fn gen_shader_program(
 
     let mut success = 0;
     gl::GetProgramiv(shader_program_id, gl::LINK_STATUS, &mut success);
-    println!("{1:} link status: {}", success, name);
+    println!("\"{1:}\" link status: {}", success, name);
     if success == 0 {
         let mut log = ['0' as u8; 512];
         let null_mut = &mut 0 as *mut _;

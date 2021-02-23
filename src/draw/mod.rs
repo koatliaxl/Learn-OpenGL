@@ -7,20 +7,22 @@ mod face_culling;
 mod framebuffers;
 mod lighting;
 mod stencil_testing;
+mod ubo_use;
 
 use self::cubes::draw_cubes;
 use self::{
     backpack::*, blending::*, cubemap::*, depth_texting::*, face_culling::*, framebuffers::*,
-    lighting::*, stencil_testing::*,
+    lighting::*, stencil_testing::*, ubo_use::*,
 };
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
 use ::opengl_learn::Model;
 use glfw::Window;
 use matrix::Matrix4x4;
+use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = CubeMap;
+static DRAW: Draw = UniformBufferObjectsUse;
 
 #[allow(unused)]
 enum Draw {
@@ -34,6 +36,7 @@ enum Draw {
     FaceCulling,
     FrameBuffers,
     CubeMap,
+    UniformBufferObjectsUse,
     TextureMinFilterTest,
 }
 
@@ -46,6 +49,21 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             state.aspect_ratio,
             100.0,
             0.1,
+        );
+        let mat_size = view_mat.size_of_raw_value();
+        let buf_gl_id = gfx.get_uniform_buffer_gl_id("Matrices");
+        gl::BindBuffer(gl::UNIFORM_BUFFER, buf_gl_id);
+        gl::BufferSubData(
+            gl::UNIFORM_BUFFER,
+            0,
+            mat_size as isize,
+            view_mat.as_ptr() as *const c_void,
+        );
+        gl::BufferSubData(
+            gl::UNIFORM_BUFFER,
+            mat_size as isize,
+            mat_size as isize,
+            projection_mat.as_ptr() as *const c_void,
         );
 
         gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -100,6 +118,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
                 model,
                 EnvironmentMappingMode::Refraction,
             ),
+            UniformBufferObjectsUse => draw_ubo_use(gfx),
             _ => {}
         }
     }
@@ -107,8 +126,6 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
 
 pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window) {
     unsafe {
-        /*gl::UseProgram(gfx.shader_programs[1]);
-        gl::Uniform1f(gfx.get_var_loc("Zoom", 1), 1.0);*/
         gl::Enable(gl::DEPTH_TEST);
         match DRAW {
             Triangle | Cubes => gl::ClearColor(0.2, 0.2, 0.7, 1.0),
@@ -120,8 +137,28 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window) {
             FaceCulling => setup_face_culling(),
             FrameBuffers => setup_framebuffers(gfx, window),
             CubeMap => setup_cubemap_scene(gfx, model),
+            UniformBufferObjectsUse => setup_ubo_use(gfx),
             _ => {}
         }
+        let mut ubo_matrices = 0;
+        gl::GenBuffers(1, &mut ubo_matrices);
+        gl::BindBuffer(gl::UNIFORM_BUFFER, ubo_matrices);
+        gl::BufferData(
+            gl::UNIFORM_BUFFER,
+            Matrix4x4::<f32>::size_of_raw_data() as isize * 2,
+            std::ptr::null(),
+            gl::STATIC_DRAW,
+        );
+        gl::BindBuffer(gl::UNIFORM_BUFFER, 0); // despite this, next work
+        gl::BindBufferRange(
+            gl::UNIFORM_BUFFER,
+            0,
+            ubo_matrices,
+            0,
+            Matrix4x4::<f32>::size_of_raw_data() as isize * 2,
+        );
+        //gl::BindBufferBase(gl::UNIFORM_BUFFER, 0, ubo_matrices);
+        gfx.insert_uniform_buffer(ubo_matrices, "Matrices");
     }
 }
 

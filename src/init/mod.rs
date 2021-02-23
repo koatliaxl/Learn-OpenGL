@@ -50,9 +50,12 @@ pub fn init_open_gl(window: &mut Window) {
         println!("Viewport is loaded: {}", gl::Viewport::is_loaded());
         let mut max_vertex_attributes = 0;
         gl::GetIntegerv(gl::MAX_VERTEX_ATTRIBS, &mut max_vertex_attributes);
+        println!("Max vertex attributes supported: {}", max_vertex_attributes);
+        let mut max_vertex_uniforms = 0;
+        gl::GetIntegerv(gl::MAX_VERTEX_UNIFORM_COMPONENTS, &mut max_vertex_uniforms);
         println!(
-            "Max of vertex attributes supported: {}",
-            max_vertex_attributes
+            "Max vertex uniform components supported: {}",
+            max_vertex_uniforms
         );
     }
 }
