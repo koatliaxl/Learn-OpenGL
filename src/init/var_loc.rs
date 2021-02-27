@@ -2,6 +2,47 @@ use crate::gl;
 use crate::gl::types::{GLint, GLuint};
 use std::collections::HashMap;
 
+pub fn get_variable_locations_2(
+    shader_program_indexes: &HashMap<String, usize>,
+    shader_programs: &Vec<GLuint>,
+    variable_locations: &mut Vec<HashMap<String, GLint>>,
+) {
+    let variables = [
+        ("UBO Use shader 1", vec!["model_mat"]),
+        ("UBO Use shader 2", vec!["model_mat"]),
+        ("UBO Use shader 3", vec!["model_mat"]),
+    ];
+    let variables = variables
+        .iter()
+        .map(|(shd_name, var_names)| {
+            let var_names = var_names
+                .iter()
+                .map(|var_name| var_name.to_string())
+                .collect::<Vec<String>>();
+            (shd_name.to_string(), var_names)
+        })
+        .collect::<Vec<(String, Vec<String>)>>();
+    for _ in 0..variables.len() {
+        variable_locations.push(HashMap::new());
+    }
+    for (shd_name, var_names) in variables {
+        let shd_index = shader_program_indexes.get(&shd_name).unwrap();
+        for mut var_name in var_names {
+            var_name += "\0";
+            let var_location = unsafe {
+                gl::GetUniformLocation(shader_programs[*shd_index], var_name.as_ptr() as *const i8)
+            };
+            var_name.remove(var_name.len() - 1);
+            println!(
+                "(\"{2:}\") \"{}\" variable location: {}",
+                var_name, var_location, shd_name
+            );
+            variable_locations[*shd_index].insert(var_name, var_location);
+        }
+    }
+}
+
+#[deprecated]
 pub fn get_variable_locations(shader_programs: &Vec<GLuint>) -> Vec<HashMap<String, GLint>> {
     let variables = [
         ("in_color", 1),
@@ -62,9 +103,6 @@ pub fn get_variable_locations(shader_programs: &Vec<GLuint>) -> Vec<HashMap<Stri
         ("projection_mat", 10),
         ("mode", 10),
         ("camera_position", 10),
-        ("model_mat", 11),
-        ("model_mat", 12),
-        ("model_mat", 13),
     ];
     let mut variables = variables
         .iter()

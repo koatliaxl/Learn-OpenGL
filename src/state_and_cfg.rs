@@ -23,14 +23,20 @@ pub struct GlData {
 }
 
 impl GlData {
+    #[allow(deprecated)]
     pub fn new() -> GlData {
-        let (shd_program_ids, shd_programs_indexes) = init_shader_programs();
+        let (shd_program_ids, shd_program_indexes) = init_shader_programs();
         let (vertex_array_objects, array_buffers) = init_vertex_array_objects();
         let textures = init_textures(&shd_program_ids);
-        let var_locations = get_variable_locations(&shd_program_ids);
+        let mut var_locations = get_variable_locations(&shd_program_ids);
+        get_variable_locations_2(
+            &shd_program_indexes,
+            &shd_program_ids,
+            &mut var_locations, /* Rustfmt force vertical formatting */
+        );
         GlData {
             shader_programs: shd_program_ids,
-            shader_program_indexes: shd_programs_indexes,
+            shader_program_indexes: shd_program_indexes,
             vertex_array_objects,
             textures,
             var_locations,

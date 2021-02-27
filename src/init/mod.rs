@@ -6,7 +6,9 @@ mod vex;
 
 pub use shd_prg::init_shader_programs;
 pub use tex::init_textures;
+#[allow(deprecated)]
 pub use var_loc::get_variable_locations;
+pub use var_loc::get_variable_locations_2;
 pub use vex::init_vertex_array_objects;
 
 use glfw::{
@@ -56,6 +58,12 @@ pub fn init_open_gl(window: &mut Window) {
         println!(
             "Max vertex uniform components supported: {}",
             max_vertex_uniforms
+        );
+        let mut max_frag_uniforms = 0;
+        gl::GetIntegerv(gl::MAX_FRAGMENT_UNIFORM_COMPONENTS, &mut max_frag_uniforms);
+        println!(
+            "Max fragment uniform components supported: {}",
+            max_frag_uniforms
         );
     }
 }
