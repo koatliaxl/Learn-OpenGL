@@ -40,7 +40,7 @@ pub unsafe fn draw_ubo_use(gfx: &GlData) {
     );
 }
 
-pub unsafe fn setup_ubo_use(gfx: &mut GlData) {
+pub unsafe fn setup_ubo_use(gfx: &GlData) {
     let shd_id = gfx.get_shader_program_gl_id("UBO Use shader 1");
     let uniform_block_idx = gl::GetUniformBlockIndex(
         shd_id,

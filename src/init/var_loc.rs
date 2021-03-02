@@ -11,6 +11,7 @@ pub fn get_variable_locations_2(
         ("UBO Use shader 1", vec!["model_mat"]),
         ("UBO Use shader 2", vec!["model_mat"]),
         ("UBO Use shader 3", vec!["model_mat"]),
+        ("Geometry Shader Use 1", vec!["model_mat"]),
     ];
     let variables = variables
         .iter()

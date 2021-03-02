@@ -9,12 +9,14 @@ pub fn init_vertex_array_objects() -> (Vec<u32>, Vec<u32>) {
         let (vertex_array_obj_2_id, arr_buf_2_id, elem_arr_buf_1) = cube();
         let (vertex_array_obj_3_id, arr_buf_3_id) = cube_2();
         let (vertex_array_obj_4_id, arr_buf_4_id, elem_arr_buf_2) = skybox();
+        let (vertex_array_obj_5_id, arr_buf_5_id) = points();
         (
             vec![
                 vertex_array_obj_id,
                 vertex_array_obj_2_id,
                 vertex_array_obj_3_id,
                 vertex_array_obj_4_id,
+                vertex_array_obj_5_id,
             ],
             vec![
                 arr_buf_1_id,
@@ -23,9 +25,78 @@ pub fn init_vertex_array_objects() -> (Vec<u32>, Vec<u32>) {
                 arr_buf_3_id,
                 arr_buf_4_id,
                 elem_arr_buf_2,
+                arr_buf_5_id,
             ],
         )
     }
+}
+
+const USIZE_OF_GL_FLOAT: usize = std::mem::size_of::<GLfloat>();
+
+const UB_POS_ATTRIB_LEN: usize = 3;
+const UB_NORMAL_ATTRIB_LEN: usize = 3;
+const UB_TEX_COORD_ATTRIB_LEN: usize = 2;
+const UB_COLOR_ATTRIB_LEN: usize = 3;
+const UB_VERTEX_LEN: usize =
+    UB_POS_ATTRIB_LEN + UB_NORMAL_ATTRIB_LEN + UB_TEX_COORD_ATTRIB_LEN + UB_COLOR_ATTRIB_LEN;
+const UB_STRIDE: usize = UB_VERTEX_LEN * USIZE_OF_GL_FLOAT;
+
+unsafe fn points() -> (u32, u32) {
+    const POINTS_NUM: usize = 4;
+    let points: [((f32, f32, f32), (f32, f32, f32)); POINTS_NUM] = [
+        ((0.5, 0.5, -0.5), (1.0, 0.0, 0.0)),
+        ((0.5, -0.5, -0.5), (0.0, 1.0, 0.0)),
+        ((-0.5, -0.5, -0.5), (0.0, 0.0, 1.0)),
+        ((-0.5, 0.5, -0.5), (1.0, 1.0, 0.0)),
+    ];
+    let mut vertices_raw = [0.0; POINTS_NUM * UB_VERTEX_LEN];
+    for i in 0..POINTS_NUM {
+        let ((x, y, z), (r, g, b)) = points[i];
+        vertices_raw[UB_VERTEX_LEN * i + 0] = x;
+        vertices_raw[UB_VERTEX_LEN * i + 1] = y;
+        vertices_raw[UB_VERTEX_LEN * i + 2] = z;
+        let offset =
+            UB_VERTEX_LEN * i + UB_POS_ATTRIB_LEN + UB_NORMAL_ATTRIB_LEN + UB_TEX_COORD_ATTRIB_LEN;
+        vertices_raw[offset + 0] = r;
+        vertices_raw[offset + 1] = g;
+        vertices_raw[offset + 2] = b;
+    }
+
+    let mut vertex_array_obj_id = 0;
+    gl::GenVertexArrays(1, &mut vertex_array_obj_id);
+    gl::BindVertexArray(vertex_array_obj_id);
+
+    let mut vertex_buf_obj_id = 0;
+    gl::GenBuffers(1, &mut vertex_buf_obj_id);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vertex_buf_obj_id);
+    gl::BufferData(
+        gl::ARRAY_BUFFER,
+        vertices_raw.len() as isize * SIZE_OF_GL_FLOAT,
+        vertices_raw.as_ptr() as *const c_void,
+        gl::STATIC_DRAW,
+    );
+
+    gl::VertexAttribPointer(
+        0,
+        UB_POS_ATTRIB_LEN as _,
+        gl::FLOAT,
+        gl::FALSE,
+        UB_STRIDE as _,
+        0 as *const c_void,
+    );
+    gl::EnableVertexAttribArray(0);
+    gl::VertexAttribPointer(
+        3,
+        UB_COLOR_ATTRIB_LEN as _,
+        gl::FLOAT,
+        gl::FALSE,
+        UB_STRIDE as _,
+        ((UB_POS_ATTRIB_LEN + UB_NORMAL_ATTRIB_LEN + UB_TEX_COORD_ATTRIB_LEN) * USIZE_OF_GL_FLOAT)
+            as *const c_void,
+    );
+    gl::EnableVertexAttribArray(3);
+
+    (vertex_array_obj_id, vertex_buf_obj_id)
 }
 
 unsafe fn skybox() -> (u32, u32, u32) {

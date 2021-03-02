@@ -80,7 +80,36 @@ pub unsafe fn gen_shader_program(
     gl::GetProgramiv(shader_program_id, gl::LINK_STATUS, &mut success);
     println!("\"{1:}\" link status: {}", success, name);
     if success == 0 {
-        let mut log = ['0' as u8; 512];
+        let mut log = [' ' as u8; 512];
+        let null_mut = &mut 0 as *mut _;
+        gl::GetProgramInfoLog(
+            shader_program_id,
+            log.len() as i32,
+            null_mut,
+            log.as_mut_ptr() as *mut _,
+        );
+        println!("{}", std::str::from_utf8_unchecked(&log));
+    }
+    shader_program_id
+}
+
+pub unsafe fn gen_geometry_shader_program(
+    vertex_shader_id: u32,
+    fragment_shader_id: u32,
+    geometry_shader_id: u32,
+    name: &str,
+) -> u32 {
+    let shader_program_id = gl::CreateProgram();
+    gl::AttachShader(shader_program_id, vertex_shader_id);
+    gl::AttachShader(shader_program_id, fragment_shader_id);
+    gl::AttachShader(shader_program_id, geometry_shader_id);
+    gl::LinkProgram(shader_program_id);
+
+    let mut success = 0;
+    gl::GetProgramiv(shader_program_id, gl::LINK_STATUS, &mut success);
+    println!("\"{1:}\" link status: {}", success, name);
+    if success == 0 {
+        let mut log = [' ' as u8; 512];
         let null_mut = &mut 0 as *mut _;
         gl::GetProgramInfoLog(
             shader_program_id,

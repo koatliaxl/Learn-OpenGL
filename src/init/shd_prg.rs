@@ -95,6 +95,16 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             gl::FRAGMENT_SHADER,
             "UBO Use fragment shader 3",
         );
+        let geometry_shd_1 = gen_shader_from_file(
+            "shader_src/geometry_shd_1.glsl",
+            gl::GEOMETRY_SHADER,
+            "Geometry Shader 1",
+        );
+        let frag_shd_4 = gen_shader(
+            FRAGMENT_SHADER_4_SRC,
+            gl::FRAGMENT_SHADER,
+            "Fragment Shader 4",
+        );
 
         let shader_programs = [
             (vertex_shader_id, fragment_shader_id, "Shader 1"),
@@ -135,7 +145,11 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
         let mut shader_program_ids = Vec::new();
         let mut shader_programs_index_keys = HashMap::new();
         for (vertex_shd, frag_shd, shd_program_name) in &shader_programs {
-            let shd_program_id = gen_shader_program(*vertex_shd, *frag_shd, shd_program_name);
+            let shd_program_id = gen_shader_program(
+                *vertex_shd,
+                *frag_shd,
+                shd_program_name, /* Rustfmt force vertical formatting */
+            );
             shader_program_ids.push(shd_program_id);
             shader_programs_index_keys
                 .insert(shd_program_name.to_string(), shader_program_ids.len() - 1);
@@ -144,6 +158,26 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             "Default shader".to_string(),
             *shader_programs_index_keys.get("Blending shader").unwrap(),
         );
+
+        let geometry_shader_programs = [(
+            ubo_vertex_shd,
+            frag_shd_4,
+            geometry_shd_1,
+            "Geometry Shader Use 1",
+        )];
+
+        for (vertex_shd, frag_shd, geometry_shader, shd_program_name) in &geometry_shader_programs {
+            let shd_program_id = gen_geometry_shader_program(
+                *vertex_shd,
+                *frag_shd,
+                *geometry_shader,
+                shd_program_name,
+            );
+            shader_program_ids.push(shd_program_id);
+            shader_programs_index_keys
+                .insert(shd_program_name.to_string(), shader_program_ids.len() - 1);
+        }
+
         gl::DeleteShader(vertex_shader_id);
         gl::DeleteShader(fragment_shader_id);
         gl::DeleteShader(vertex_shader_2_id);
@@ -162,6 +196,8 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
         gl::DeleteShader(ubo_frag_shd_1);
         gl::DeleteShader(ubo_frag_shd_2);
         gl::DeleteShader(ubo_frag_shd_3);
+        gl::DeleteShader(geometry_shd_1);
+        gl::DeleteShader(frag_shd_4);
 
         (shader_program_ids, shader_programs_index_keys)
     }

@@ -1,3 +1,11 @@
+pub const FRAGMENT_SHADER_4_SRC: &str = "
+    #version 330 core
+    out vec4 Frag_Color;
+    in vec3 Color;
+    void main() {
+        Frag_Color = vec4(Color, 0.0);
+    }";
+
 pub const UBO_FRAG_SHADER_SRC_1: &str = "
     #version 330 core
     out vec4 out_Color;
