@@ -12,6 +12,9 @@ pub fn get_variable_locations_2(
         ("UBO Use shader 2", vec!["model_mat"]),
         ("UBO Use shader 3", vec!["model_mat"]),
         ("Geometry Shader Use 1", vec!["model_mat"]),
+        ("Explode Effect shader", vec!["model_mat", "time"]),
+        ("Draw Normals shader", vec!["model_mat", "rgba"]),
+        ("UB Default shader", vec!["model_mat"]),
     ];
     let variables = variables
         .iter()
@@ -31,7 +34,10 @@ pub fn get_variable_locations_2(
         for mut var_name in var_names {
             var_name += "\0";
             let var_location = unsafe {
-                gl::GetUniformLocation(shader_programs[*shd_index], var_name.as_ptr() as *const i8)
+                gl::GetUniformLocation(
+                    shader_programs[*shd_index],
+                    var_name.as_ptr() as *const i8, /* Rustfmt force vertical formatting */
+                )
             };
             var_name.remove(var_name.len() - 1);
             println!(

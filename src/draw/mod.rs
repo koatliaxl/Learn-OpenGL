@@ -24,7 +24,7 @@ use matrix::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = GeometryShaderUse;
+static DRAW: Draw = GeometryShaderUse(DrawNormals);
 
 #[allow(unused)]
 enum Draw {
@@ -39,7 +39,7 @@ enum Draw {
     FrameBuffers,
     CubeMap,
     UniformBufferObjectsUse,
-    GeometryShaderUse,
+    GeometryShaderUse(GeomShdUseOpt),
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -124,7 +124,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
                 EnvironmentMappingMode::Refraction,
             ),
             UniformBufferObjectsUse => draw_ubo_use(gfx),
-            GeometryShaderUse => draw_geometry_shd_use(gfx),
+            GeometryShaderUse(opt) => draw_geometry_shd_use(gfx, model, time, opt),
             _ => {}
         }
     }
@@ -144,7 +144,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window) {
             FrameBuffers => setup_framebuffers(gfx, window),
             CubeMap => setup_cubemap_scene(gfx, model),
             UniformBufferObjectsUse => setup_ubo_use(gfx),
-            GeometryShaderUse => setup_geometry_shd_use(gfx),
+            GeometryShaderUse(opt) => setup_geometry_shd_use(gfx, model, opt),
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}

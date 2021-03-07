@@ -9,6 +9,7 @@ in VS_Out {
     vec3 normal;
     vec3 world_pos;
 } gs_in[];
+
 out vec3 Color;
 
 void build_house(vec4 position);

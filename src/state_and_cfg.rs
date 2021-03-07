@@ -74,7 +74,6 @@ impl GlData {
         }
     }
 
-    #[allow(dead_code)]
     pub unsafe fn set_uniform_vec3f(
         &self,
         name: &str,
@@ -95,6 +94,19 @@ impl GlData {
     ) {
         let var_location = self.get_var_loc(name, shader_program_index);
         let (v1, v2, v3, v4) = vec.get_components();
+        gl::Uniform4f(var_location, v1, v2, v3, v4);
+    }
+
+    pub unsafe fn set_uniform_4f(
+        &self,
+        name: &str,
+        shader_program_index: usize,
+        v1: f32,
+        v2: f32,
+        v3: f32,
+        v4: f32,
+    ) {
+        let var_location = self.get_var_loc(name, shader_program_index);
         gl::Uniform4f(var_location, v1, v2, v3, v4);
     }
 

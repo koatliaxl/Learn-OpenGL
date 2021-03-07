@@ -35,8 +35,8 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             gl::FRAGMENT_SHADER,
             "Fragment Shader 3",
         );
-        let single_color_frag_shd_id = gen_shader_from_file(
-            "shader_src/single_color_frag_shd.glsl",
+        let single_color_frag_shd_id = gen_shader(
+            SINGLE_COLOR_FRAG_SHADER_SRC,
             gl::FRAGMENT_SHADER,
             "Single Color fragment shader",
         );
@@ -75,10 +75,10 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             gl::FRAGMENT_SHADER,
             "Cubemap fragment shader",
         );
-        let ubo_vertex_shd = gen_shader_from_file(
-            "shader_src/ubo_vertex_shd.glsl",
+        let ub_vertex_shd = gen_shader_from_file(
+            "shader_src/ub_vertex_shd.glsl",
             gl::VERTEX_SHADER,
-            "UBO Use vertex shader",
+            "UB vertex shader",
         );
         let ubo_frag_shd_1 = gen_shader(
             UBO_FRAG_SHADER_SRC_1,
@@ -104,6 +104,26 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             FRAGMENT_SHADER_4_SRC,
             gl::FRAGMENT_SHADER,
             "Fragment Shader 4",
+        );
+        let explode_effect_geometry_shd = gen_shader_from_file(
+            "shader_src/explode_effect_geometry_shd.glsl",
+            gl::GEOMETRY_SHADER,
+            "Explode Effect geometry shader",
+        );
+        let draw_normals_geometry_shd = gen_shader_from_file(
+            "shader_src/draw_normals_geometry_shd.glsl",
+            gl::GEOMETRY_SHADER,
+            "Draw Normals geometry shader",
+        );
+        let ib_vertex_shd = gen_shader_from_file(
+            "shader_src/ib_vertex_shd.glsl",
+            gl::VERTEX_SHADER,
+            "IB vertex shader",
+        );
+        let single_color_alpha_frag_shd = gen_shader(
+            SINGLE_COLOR_ALPHA_FRAG_SHADER_SRC,
+            gl::FRAGMENT_SHADER,
+            "Single Color+Alpha fragment shader",
         );
 
         let shader_programs = [
@@ -138,9 +158,10 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
                 cubemap_frag_shd,
                 "Environment Mapping shader",
             ),
-            (ubo_vertex_shd, ubo_frag_shd_1, "UBO Use shader 1"),
-            (ubo_vertex_shd, ubo_frag_shd_2, "UBO Use shader 2"),
-            (ubo_vertex_shd, ubo_frag_shd_3, "UBO Use shader 3"),
+            (ub_vertex_shd, ubo_frag_shd_1, "UBO Use shader 1"),
+            (ub_vertex_shd, ubo_frag_shd_2, "UBO Use shader 2"),
+            (ub_vertex_shd, ubo_frag_shd_3, "UBO Use shader 3"),
+            (ub_vertex_shd, blending_frag_shd, "UB Default shader"),
         ];
         let mut shader_program_ids = Vec::new();
         let mut shader_programs_index_keys = HashMap::new();
@@ -159,12 +180,26 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             *shader_programs_index_keys.get("Blending shader").unwrap(),
         );
 
-        let geometry_shader_programs = [(
-            ubo_vertex_shd,
-            frag_shd_4,
-            geometry_shd_1,
-            "Geometry Shader Use 1",
-        )];
+        let geometry_shader_programs = [
+            (
+                ib_vertex_shd,
+                frag_shd_4,
+                geometry_shd_1,
+                "Geometry Shader Use 1",
+            ),
+            (
+                ib_vertex_shd,
+                blending_frag_shd,
+                explode_effect_geometry_shd,
+                "Explode Effect shader",
+            ),
+            (
+                ib_vertex_shd,
+                single_color_alpha_frag_shd,
+                draw_normals_geometry_shd,
+                "Draw Normals shader",
+            ),
+        ];
 
         for (vertex_shd, frag_shd, geometry_shader, shd_program_name) in &geometry_shader_programs {
             let shd_program_id = gen_geometry_shader_program(
@@ -192,12 +227,16 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
         gl::DeleteShader(post_processing_frag_shd);
         gl::DeleteShader(cubemap_vertex_shd);
         gl::DeleteShader(cubemap_frag_shd);
-        gl::DeleteShader(ubo_vertex_shd);
+        gl::DeleteShader(ub_vertex_shd);
         gl::DeleteShader(ubo_frag_shd_1);
         gl::DeleteShader(ubo_frag_shd_2);
         gl::DeleteShader(ubo_frag_shd_3);
         gl::DeleteShader(geometry_shd_1);
         gl::DeleteShader(frag_shd_4);
+        gl::DeleteShader(explode_effect_geometry_shd);
+        gl::DeleteShader(draw_normals_geometry_shd);
+        gl::DeleteShader(ib_vertex_shd);
+        gl::DeleteShader(single_color_alpha_frag_shd);
 
         (shader_program_ids, shader_programs_index_keys)
     }

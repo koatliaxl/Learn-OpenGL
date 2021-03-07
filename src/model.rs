@@ -11,7 +11,6 @@ pub struct Model {
     meshes_gl_data: Vec<Option<MeshOpenGLData>>,
     materials: Vec<Material>,
     textures_loaded: HashMap<String, Texture>,
-    //shader_program_id: usize,
 }
 
 struct MeshOpenGLData {
@@ -149,18 +148,18 @@ impl Model {
             let mut mesh_vertices = Vec::with_capacity(
                 mesh.positions.len() + mesh.normals.len() + mesh.texcoords.len(),
             );
-            let (mut i, mut j) = (0, 0);
-            while i < mesh.positions.len() {
-                mesh_vertices.push(mesh.positions[i]);
-                mesh_vertices.push(mesh.positions[i + 1]);
-                mesh_vertices.push(mesh.positions[i + 2]);
-                mesh_vertices.push(mesh.normals[i]);
-                mesh_vertices.push(mesh.normals[i + 1]);
-                mesh_vertices.push(mesh.normals[i + 2]);
-                mesh_vertices.push(mesh.texcoords[j]);
-                mesh_vertices.push(mesh.texcoords[j + 1]);
-                i += 3;
-                j += 2;
+            let (mut i3x, mut i2x) = (0, 0);
+            while i3x < mesh.positions.len() {
+                mesh_vertices.push(mesh.positions[i3x]);
+                mesh_vertices.push(mesh.positions[i3x + 1]);
+                mesh_vertices.push(mesh.positions[i3x + 2]);
+                mesh_vertices.push(mesh.normals[i3x]);
+                mesh_vertices.push(mesh.normals[i3x + 1]);
+                mesh_vertices.push(mesh.normals[i3x + 2]);
+                mesh_vertices.push(mesh.texcoords[i2x]);
+                mesh_vertices.push(mesh.texcoords[i2x + 1]);
+                i3x += 3;
+                i2x += 2;
             }
             gl::BufferData(
                 gl::ARRAY_BUFFER,
@@ -217,8 +216,8 @@ impl Model {
                 gl::BindVertexArray(mesh_gl_data.vertex_array_id);
                 if let Some(material_id) = mesh.material_id {
                     let material = &self.materials[material_id];
-                    self.setup_texture_draw(&material.diffuse_texture);
-                    self.setup_texture_draw(&material.specular_texture);
+                    self.prepare_texture_draw(&material.diffuse_texture);
+                    self.prepare_texture_draw(&material.specular_texture);
                 }
                 gl::DrawElements(
                     gl::TRIANGLES, /* Rustfmt force vertical formatting */
@@ -230,7 +229,7 @@ impl Model {
         }
     }
 
-    unsafe fn setup_texture_draw(&self, texture_name: &str) {
+    unsafe fn prepare_texture_draw(&self, texture_name: &str) {
         if let Some(Texture {
             gl_id: Some(id),
             gl_texture_unit,
