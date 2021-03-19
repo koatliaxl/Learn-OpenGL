@@ -2,7 +2,7 @@ use crate::camera::Camera;
 use crate::gl;
 use crate::gl::types::{GLfloat, GLint, GLuint};
 use crate::init::*;
-use matrix::{Matrix4x4, Vector3, Vector4};
+use mat_vec::{Matrix4x4, Vector3, Vector4};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
@@ -11,6 +11,7 @@ pub struct GlData {
     shader_program_indexes: HashMap<String, usize>,
     pub vertex_array_objects: Vec<GLuint>,
     pub textures: Vec<GLuint>,
+    textures_indexes: HashMap<String, usize>,
     var_locations: Vec<HashMap<String, GLint>>,
     pub array_buffers: Vec<GLuint>,
 
@@ -27,7 +28,7 @@ impl GlData {
     pub fn new() -> GlData {
         let (shd_program_ids, shd_program_indexes) = init_shader_programs();
         let (vertex_array_objects, array_buffers) = init_vertex_array_objects();
-        let textures = init_textures(&shd_program_ids);
+        let (textures, tex_indexes) = init_textures(&shd_program_ids);
         let mut var_locations = get_variable_locations(&shd_program_ids);
         get_variable_locations_2(
             &shd_program_indexes,
@@ -39,6 +40,7 @@ impl GlData {
             shader_program_indexes: shd_program_indexes,
             vertex_array_objects,
             textures,
+            textures_indexes: tex_indexes,
             var_locations,
             array_buffers,
             framebuffers: Vec::new(),
@@ -71,6 +73,14 @@ impl GlData {
             *index
         } else {
             panic!("There is no shader program index for key: {}", key)
+        }
+    }
+
+    pub fn get_texture_gl_id(&self, key: &str) -> GLuint {
+        if let Some(index) = self.textures_indexes.get(key) {
+            self.textures[*index]
+        } else {
+            panic!("There is no texture OpenGL id for key: {}", key)
         }
     }
 

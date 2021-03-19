@@ -1,4 +1,5 @@
-matrix/
+#matrix/
+mat_vec/
 gl/bindings.rs
 *.lock
 target/

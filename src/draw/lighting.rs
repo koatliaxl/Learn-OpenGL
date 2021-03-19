@@ -1,6 +1,6 @@
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
-use matrix::{Matrix4x4, Vector3, Vector4};
+use mat_vec::{Matrix4x4, Vector3, Vector4};
 //use std::ffi::c_void;
 
 static LIGHTING_SCENE_ATMOSPHERE: LightingSceneAtmosphere = DESERT;

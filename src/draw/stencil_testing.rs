@@ -3,7 +3,7 @@ use crate::gl;
 #[allow(unused_imports)]
 use crate::gl::{ALWAYS, EQUAL, GEQUAL, GREATER, LEQUAL, LESS, NEVER, NOTEQUAL};
 use crate::state_and_cfg::GlData;
-use matrix::Matrix4x4;
+use mat_vec::Matrix4x4;
 
 pub unsafe fn draw_stencil_testing_scene(
     gfx: &GlData,

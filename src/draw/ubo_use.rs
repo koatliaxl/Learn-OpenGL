@@ -1,6 +1,6 @@
 use crate::gl;
 use crate::state_and_cfg::GlData;
-use matrix::Matrix4x4;
+use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 
 pub unsafe fn draw_ubo_use(gfx: &GlData) {

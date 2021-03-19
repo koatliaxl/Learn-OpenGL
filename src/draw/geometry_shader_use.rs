@@ -1,7 +1,7 @@
 use crate::gl;
 use crate::state_and_cfg::GlData;
 use ::opengl_learn::Model;
-use matrix::Matrix4x4;
+use mat_vec::Matrix4x4;
 
 #[derive(Copy, Clone)]
 #[allow(unused)]

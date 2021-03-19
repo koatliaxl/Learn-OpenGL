@@ -1,4 +1,4 @@
-use matrix::{Matrix4x4, Vector3};
+use mat_vec::{Matrix4x4, Vector3};
 
 #[derive(Clone)]
 pub struct Camera {

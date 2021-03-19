@@ -20,7 +20,7 @@ layout (std140) uniform Matrices {
 
 void main() {
     vec4 world_pos = model_mat * vec4(in_Position, 1.0);
-    gl_Position = transpose(projection) * transpose(view) * world_pos;
+    gl_Position = projection * view * world_pos;
 
     vs_out.color = in_Color;
     vs_out.tex_coords = in_Tex_Coords;

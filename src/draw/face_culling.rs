@@ -1,6 +1,6 @@
 use crate::gl;
 use crate::state_and_cfg::GlData;
-use matrix::Matrix4x4;
+use mat_vec::Matrix4x4;
 
 pub unsafe fn draw_face_culling(
     gfx: &GlData,

@@ -31,13 +31,10 @@ void main() {
 const float MAGNITUDE = 0.4;
 
 void generate_line(int index) {
-    mat4 trp_view = transpose(view);
-    mat4 trp_projection = transpose(projection);
-
-    gl_Position = trp_projection * trp_view * vec4(gs_in[index].world_pos, 1.0);
+    gl_Position = projection * view * vec4(gs_in[index].world_pos, 1.0);
     EmitVertex();
 
-    gl_Position = trp_projection * trp_view * vec4(gs_in[index].world_pos + gs_in[index].normal * MAGNITUDE, 1.0);
+    gl_Position = projection * view * vec4(gs_in[index].world_pos + gs_in[index].normal * MAGNITUDE, 1.0);
     EmitVertex();
 
     EndPrimitive();

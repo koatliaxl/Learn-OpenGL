@@ -2,7 +2,7 @@ use crate::gl;
 use crate::gl::types::{GLenum, GLint, GLuint};
 use std::ffi::c_void;
 
-pub unsafe fn generate_gl_texture(
+pub unsafe fn load_texture(
     image_path: &str,
     wrap_s: GLenum,
     wrap_t: GLenum,
@@ -37,7 +37,7 @@ pub unsafe fn generate_gl_texture(
 }
 
 #[deprecated]
-pub unsafe fn gen_gl_tex_and_set_shd_var(
+pub unsafe fn load_tex_and_set_shd_var(
     image_path: &str,
     shader_variable_name: &str,
     shader_variable_value: GLint,

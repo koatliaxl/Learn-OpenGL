@@ -1,4 +1,3 @@
-mod load_model;
 mod shd_prg;
 mod tex;
 mod var_loc;
@@ -29,7 +28,7 @@ pub fn init_glfw() -> (Glfw, Window, Receiver<(f64, WindowEvent)>) {
     glfw.window_hint(WindowHint::ContextVersionMinor(3));
     glfw.window_hint(WindowHint::OpenGlProfile(OpenGlProfileHint::Core));
     let (mut window, events) = glfw
-        .create_window(600, 500, "OpenGL learn", glfw::WindowMode::Windowed)
+        .create_window(700, 600, "OpenGL learn", glfw::WindowMode::Windowed)
         .expect("Failed to create GLFW window");
     window.make_current();
     window.set_key_polling(true);
@@ -50,20 +49,21 @@ pub fn init_open_gl(window: &mut Window) {
     unsafe {
         gl::Viewport(0, 0, window.get_size().0, window.get_size().1);
         println!("Viewport is loaded: {}", gl::Viewport::is_loaded());
-        let mut max_vertex_attributes = 0;
-        gl::GetIntegerv(gl::MAX_VERTEX_ATTRIBS, &mut max_vertex_attributes);
-        println!("Max vertex attributes supported: {}", max_vertex_attributes);
-        let mut max_vertex_uniforms = 0;
-        gl::GetIntegerv(gl::MAX_VERTEX_UNIFORM_COMPONENTS, &mut max_vertex_uniforms);
-        println!(
-            "Max vertex uniform components supported: {}",
-            max_vertex_uniforms
-        );
-        let mut max_frag_uniforms = 0;
-        gl::GetIntegerv(gl::MAX_FRAGMENT_UNIFORM_COMPONENTS, &mut max_frag_uniforms);
-        println!(
-            "Max fragment uniform components supported: {}",
-            max_frag_uniforms
-        );
+        let parameters = [
+            (gl::MAX_VERTEX_ATTRIBS, "Max vertex attributes supported"),
+            (
+                gl::MAX_VERTEX_UNIFORM_COMPONENTS,
+                "Max vertex uniform components supported",
+            ),
+            (
+                gl::MAX_FRAGMENT_UNIFORM_COMPONENTS,
+                "Max fragment uniform components supported",
+            ),
+        ];
+        for (param, msg) in &parameters {
+            let mut value = 0;
+            gl::GetIntegerv(*param, &mut value);
+            println!("{}: {}", msg, value);
+        }
     }
 }

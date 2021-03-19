@@ -1,6 +1,6 @@
 use crate::state_and_cfg::{Config, State};
 use glfw::{Action, Key, Window};
-use matrix::Vector3;
+use mat_vec::Vector3;
 use std::time::Instant;
 
 pub fn change_camera_pos(window: &mut Window, state: &mut State, config: &Config, delta_time: f32) {

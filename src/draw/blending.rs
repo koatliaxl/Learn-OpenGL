@@ -1,7 +1,7 @@
 use super::{draw_floor, draw_two_containers};
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
-use matrix::{Matrix4x4, Vector3};
+use mat_vec::{Matrix4x4, Vector3};
 use std::cmp::Ordering::Equal;
 
 static POSITIONS: [(f32, f32, f32); 5] = [

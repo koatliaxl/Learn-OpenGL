@@ -20,11 +20,11 @@ use crate::gl;
 use crate::state_and_cfg::{GlData, State};
 use ::opengl_learn::Model;
 use glfw::Window;
-use matrix::Matrix4x4;
+use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = GeometryShaderUse(DrawNormals);
+static DRAW: Draw = FrameBuffers;
 
 #[allow(unused)]
 enum Draw {
@@ -32,7 +32,7 @@ enum Draw {
     Cubes,
     LightingScene,
     Backpack,
-    DepthTestingScene,
+    DepthTestingScene(VisualisationMode),
     StencilTestingScene,
     BlendingScene,
     FaceCulling,
@@ -62,13 +62,13 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             gl::UNIFORM_BUFFER,
             0,
             mat_size as isize,
-            view_mat.as_ptr() as *const c_void,
+            view_mat.transpose().as_ptr() as *const c_void,
         );
         gl::BufferSubData(
             gl::UNIFORM_BUFFER,
             mat_size as isize,
             mat_size as isize,
-            projection_mat.as_ptr() as *const c_void,
+            projection_mat.transpose().as_ptr() as *const c_void,
         );
 
         gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -91,11 +91,11 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
                 &projection_mat,
                 state, /* Rustfmt force vertical formatting */
             ),
-            DepthTestingScene => draw_depth_testing_scene(
+            DepthTestingScene(mode) => draw_depth_testing_scene(
                 gfx,
                 &view_mat,
                 &projection_mat,
-                1, /* Rustfmt force vertical formatting */
+                mode, /* Rustfmt force vertical formatting */
             ),
             StencilTestingScene => draw_stencil_testing_scene(
                 gfx,
@@ -137,7 +137,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window) {
             Triangle | Cubes => gl::ClearColor(0.2, 0.2, 0.7, 1.0),
             LightingScene => init_lighting_scene(&gfx),
             Backpack => setup_backpack_draw(gfx, model),
-            DepthTestingScene => setup_depth_testing_scene(),
+            DepthTestingScene(_) => setup_depth_testing_scene(),
             StencilTestingScene => setup_stencil_testing_scene(),
             BlendingScene => setup_blending_scene(),
             FaceCulling => setup_face_culling(),

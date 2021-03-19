@@ -4,7 +4,7 @@ use crate::gl;
 use crate::gl::types::GLenum;
 use crate::state_and_cfg::GlData;
 use glfw::Window;
-use matrix::{Matrix4x4, Vector3};
+use mat_vec::{Matrix4x4, Vector3};
 
 #[derive(Copy, Clone)]
 #[allow(dead_code)]

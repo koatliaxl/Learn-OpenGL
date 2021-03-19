@@ -2,7 +2,7 @@ use crate::camera::Camera;
 use crate::gl;
 use crate::gl::types::GLenum;
 use crate::state_and_cfg::GlData;
-use matrix::Matrix4x4;
+use mat_vec::Matrix4x4;
 use opengl_learn::Model;
 use std::ffi::c_void;
 
