@@ -7,6 +7,7 @@ mod depth_texting;
 mod face_culling;
 mod framebuffers;
 mod geometry_shader_use;
+mod instancing;
 mod lighting;
 mod stencil_testing;
 mod ubo_use;
@@ -14,7 +15,8 @@ mod ubo_use;
 use self::cubes::draw_cubes;
 use self::{
     adv_data_use::*, backpack::*, blending::*, cubemap::*, depth_texting::*, face_culling::*,
-    framebuffers::*, geometry_shader_use::*, lighting::*, stencil_testing::*, ubo_use::*,
+    framebuffers::*, geometry_shader_use::*, instancing::*, lighting::*, stencil_testing::*,
+    ubo_use::*,
 };
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
@@ -24,7 +26,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = FrameBuffers;
+static DRAW: Draw = Instancing(Asteroids);
 
 #[allow(unused)]
 enum Draw {
@@ -40,6 +42,7 @@ enum Draw {
     CubeMap,
     UniformBufferObjectsUse,
     GeometryShaderUse(GeomShdUseOpt),
+    Instancing(InstancingOption),
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -125,12 +128,13 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             ),
             UniformBufferObjectsUse => draw_ubo_use(gfx),
             GeometryShaderUse(opt) => draw_geometry_shd_use(gfx, model, time, opt),
+            Instancing(_) => instancing_draw(gfx),
             _ => {}
         }
     }
 }
 
-pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window) {
+pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &mut State) {
     unsafe {
         gl::Enable(gl::DEPTH_TEST);
         match DRAW {
@@ -145,6 +149,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window) {
             CubeMap => setup_cubemap_scene(gfx, model),
             UniformBufferObjectsUse => setup_ubo_use(gfx),
             GeometryShaderUse(opt) => setup_geometry_shd_use(gfx, model, opt),
+            Instancing(opt) => setup_instancing(gfx, opt, state),
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}

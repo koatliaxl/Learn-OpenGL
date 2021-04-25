@@ -8,6 +8,8 @@ pub struct Camera {
     pub look_at_matrix: Matrix4x4<f32>,
     pub yaw: f32,
     pub pitch: f32,
+
+    pub speed: f32,
 }
 
 impl Camera {
@@ -27,6 +29,7 @@ impl Camera {
             world_up_direction,
             yaw: -90.0,
             pitch: 0.0,
+            speed: 2.5,
         }
     }
 

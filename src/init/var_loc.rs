@@ -15,6 +15,7 @@ pub fn get_variable_locations_2(
         ("Explode Effect shader", vec!["model_mat", "time"]),
         ("Draw Normals shader", vec!["model_mat", "rgba"]),
         ("UB Default shader", vec!["model_mat"]),
+        ("Instancing shader", vec!["model_mat", "draw_option"]),
     ];
     let variables = variables
         .iter()

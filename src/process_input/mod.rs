@@ -3,6 +3,8 @@ mod lighting;
 mod textures;
 mod view;
 
+//pub use camera::CAMERA_SPEED;
+
 use crate::state_and_cfg::{Config, State};
 use camera::*;
 use glfw::{Action, CursorMode, Key, Window, WindowEvent};

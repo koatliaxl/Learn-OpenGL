@@ -14,6 +14,7 @@ pub struct GlData {
     textures_indexes: HashMap<String, usize>,
     var_locations: Vec<HashMap<String, GLint>>,
     pub array_buffers: Vec<GLuint>,
+    array_buffer_indexes: HashMap<String, usize>,
 
     pub framebuffers: Vec<GLuint>,
     pub texture_attachments: Vec<GLuint>,
@@ -43,6 +44,7 @@ impl GlData {
             textures_indexes: tex_indexes,
             var_locations,
             array_buffers,
+            array_buffer_indexes: HashMap::new(),
             framebuffers: Vec::new(),
             texture_attachments: Vec::new(),
             render_buffer_attachments: Vec::new(),
@@ -59,12 +61,11 @@ impl GlData {
         }
     }
 
-    #[allow(dead_code)]
     pub fn get_shader_program_gl_id(&self, key: &str) -> GLuint {
         if let Some(index) = self.shader_program_indexes.get(key) {
             self.shader_programs[*index]
         } else {
-            panic!("There is no shader program OpenGL id for key: {}", key)
+            panic!("There is no shader program gl id for key: {}", key)
         }
     }
 
@@ -76,11 +77,30 @@ impl GlData {
         }
     }
 
+    #[allow(dead_code)]
+    pub unsafe fn use_shader_program(&self, key: &str) {
+        gl::UseProgram(self.get_shader_program_gl_id(key));
+    }
+
     pub fn get_texture_gl_id(&self, key: &str) -> GLuint {
         if let Some(index) = self.textures_indexes.get(key) {
             self.textures[*index]
         } else {
-            panic!("There is no texture OpenGL id for key: {}", key)
+            panic!("There is no texture gl id for key: {}", key)
+        }
+    }
+
+    pub fn insert_array_buffer(&mut self, gl_id: GLuint, key: &str) {
+        self.array_buffers.push(gl_id);
+        self.array_buffer_indexes
+            .insert(key.to_string(), self.array_buffers.len() - 1);
+    }
+
+    pub fn get_array_buffer_gl_id(&self, key: &str) -> GLuint {
+        if let Some(index) = self.array_buffer_indexes.get(key) {
+            self.array_buffers[*index]
+        } else {
+            panic!("There is no array buffer gl id for key: {}", key)
         }
     }
 
@@ -165,10 +185,10 @@ impl GlData {
         }
     }
 
-    pub fn insert_uniform_buffer(&mut self, ubo: GLuint, key: &str) {
+    pub fn insert_uniform_buffer(&mut self, gl_id: GLuint, key: &str) {
         self.uniform_buffers_indexes
             .insert(key.to_string(), self.uniform_buffers.len());
-        self.uniform_buffers.push(ubo);
+        self.uniform_buffers.push(gl_id);
     }
 }
 

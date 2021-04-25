@@ -3,6 +3,8 @@ use glfw::{Action, Key, Window};
 use mat_vec::Vector3;
 use std::time::Instant;
 
+//pub static mut CAMERA_SPEED: f32 = 2.5;
+
 pub fn change_camera_pos(window: &mut Window, state: &mut State, config: &Config, delta_time: f32) {
     let key = if state.time_since_last_press.elapsed() > config.repeat_delay {
         if window.get_key(Key::A) == Action::Press {
@@ -25,7 +27,8 @@ pub fn change_camera_pos(window: &mut Window, state: &mut State, config: &Config
     };
     state.time_since_last_press = Instant::now();
 
-    let camera_move_value = 2.5;
+    //let camera_move_value = unsafe { CAMERA_SPEED };
+    let camera_move_value = state.camera.speed;
     let camera_position = &mut state.camera.position;
     let world_up_dir = state.camera.world_up_direction;
     let camera_direction = state.camera.direction;

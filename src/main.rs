@@ -27,7 +27,7 @@ fn main() {
     let cfg = Config::new();
     let mut gfx = GlData::new();
     let mut model = Model::new();
-    init_draw(&mut gfx, &mut model, &window);
+    init_draw(&mut gfx, &mut model, &window, &mut state);
 
     let mut last_frame_time = Instant::now();
 
@@ -60,6 +60,10 @@ fn main() {
         gl::DeleteRenderbuffers(
             gfx.render_buffer_attachments.len() as i32,
             gfx.render_buffer_attachments.as_ptr(),
+        );
+        gl::DeleteBuffers(
+            gfx.uniform_buffers.len() as i32,
+            gfx.uniform_buffers.as_ptr(),
         );
     }
 }

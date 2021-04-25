@@ -113,6 +113,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<Str
                 LINEAR_MIPMAP_LINEAR,
                 LINEAR,
             ),
+            // Safe to change ordering after this
             /*(
                 "assets/grass.png",
                 CLAMP_TO_EDGE,

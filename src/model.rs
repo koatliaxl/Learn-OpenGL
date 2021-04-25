@@ -57,8 +57,12 @@ impl Model {
             self.materials.push(material)
         }
         for i in 0..self.materials.len() {
-            self.load_texture(path, i, Diffuse);
-            self.load_texture(path, i, Specular);
+            if !self.materials[i].diffuse_texture.is_empty() {
+                self.load_texture(path, i, Diffuse);
+            }
+            if !self.materials[i].specular_texture.is_empty() {
+                self.load_texture(path, i, Specular);
+            }
         }
     }
 
@@ -216,14 +220,42 @@ impl Model {
                 gl::BindVertexArray(mesh_gl_data.vertex_array_id);
                 if let Some(material_id) = mesh.material_id {
                     let material = &self.materials[material_id];
-                    self.prepare_texture_draw(&material.diffuse_texture);
-                    self.prepare_texture_draw(&material.specular_texture);
+                    if !material.diffuse_texture.is_empty() {
+                        self.prepare_texture_draw(&material.diffuse_texture);
+                    }
+                    if !material.specular_texture.is_empty() {
+                        self.prepare_texture_draw(&material.specular_texture);
+                    }
                 }
                 gl::DrawElements(
                     gl::TRIANGLES, /* Rustfmt force vertical formatting */
                     mesh.indices.len() as i32,
                     gl::UNSIGNED_INT,
                     0 as *const c_void,
+                );
+            }
+        }
+    }
+
+    pub unsafe fn instanced_draw(&self, count: i32) {
+        for (i, mesh) in self.meshes.iter().enumerate() {
+            if let Some(mesh_gl_data) = &self.meshes_gl_data[i] {
+                gl::BindVertexArray(mesh_gl_data.vertex_array_id);
+                if let Some(material_id) = mesh.material_id {
+                    let material = &self.materials[material_id];
+                    if !material.diffuse_texture.is_empty() {
+                        self.prepare_texture_draw(&material.diffuse_texture);
+                    }
+                    if !material.specular_texture.is_empty() {
+                        self.prepare_texture_draw(&material.specular_texture);
+                    }
+                }
+                gl::DrawElementsInstanced(
+                    gl::TRIANGLES, /* Rustfmt force vertical formatting */
+                    mesh.indices.len() as i32,
+                    gl::UNSIGNED_INT,
+                    0 as *const c_void,
+                    count,
                 );
             }
         }
@@ -257,5 +289,15 @@ impl Model {
                 tex.gl_id = None;
             }
         }
+    }
+
+    pub fn get_meshes_vertex_array_ids(&self) -> Vec<u32> {
+        let mut result = Vec::new();
+        for mesh_gl_data in &self.meshes_gl_data {
+            if let Some(gl_data) = mesh_gl_data {
+                result.push(gl_data.vertex_array_id);
+            }
+        }
+        result
     }
 }

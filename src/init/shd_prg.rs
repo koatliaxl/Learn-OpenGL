@@ -1,5 +1,6 @@
 use crate::gl;
 use crate::shaders::*;
+use gl::{FRAGMENT_SHADER, GEOMETRY_SHADER, VERTEX_SHADER};
 use std::collections::HashMap;
 
 pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
@@ -7,123 +8,128 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
     unsafe {
         let vertex_shader_id = gen_shader(
             VERTEX_SHADER_1_SRC, /* Rustfmt force vertical formatting */
-            gl::VERTEX_SHADER,
+            VERTEX_SHADER,
             "Vertex Shader",
         );
         let fragment_shader_id = gen_shader(
             FRAGMENT_SHADER_1_SRC,
-            gl::FRAGMENT_SHADER,
-            "Fragment Shader",
+            FRAGMENT_SHADER,
+            "Fragment Shader", /* Rustfmt force vertical formatting */
         );
         let vertex_shader_2_id = gen_shader_from_file(
             "shader_src/vertex_shd_2.glsl", /* Rustfmt force vertical formatting */
-            gl::VERTEX_SHADER,
+            VERTEX_SHADER,
             "Vertex Shader 2",
         );
         let fragment_shader_2_id = gen_shader_from_file(
             "shader_src/fragment_shd_2.glsl",
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Fragment Shader 2",
         );
         let vertex_shader_3_id = gen_shader_from_file(
             "shader_src/vertex_shd_3.glsl", /* Rustfmt force vertical formatting */
-            gl::VERTEX_SHADER,
+            VERTEX_SHADER,
             "Vertex Shader 3",
         );
         let fragment_shader_3_id = gen_shader_from_file(
             "shader_src/fragment_shd_3.glsl",
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Fragment Shader 3",
         );
         let single_color_frag_shd_id = gen_shader(
             SINGLE_COLOR_FRAG_SHADER_SRC,
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Single Color fragment shader",
         );
         let model_vertex_shd_id = gen_shader_from_file(
             "shader_src/model_vertex_shd.glsl",
-            gl::VERTEX_SHADER,
+            VERTEX_SHADER,
             "Model vertex shader",
         );
         let model_fragment_shd_id = gen_shader_from_file(
             "shader_src/model_fragment_shd.glsl",
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Model fragment shader",
         );
         let depth_testing_fragment_shd = gen_shader_from_file(
             "shader_src/depth_testing_fragment_shd.glsl",
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Depth Testing fragment shader",
         );
         let blending_frag_shd = gen_shader_from_file(
             "shader_src/blending_frag_shd.glsl",
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Blending fragment shader",
         );
         let post_processing_frag_shd = gen_shader_from_file(
             "shader_src/post_processing_frag_shd.glsl",
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Post-processing fragment shader",
         );
         let cubemap_vertex_shd = gen_shader_from_file(
             "shader_src/cubemap_vertex_shd.glsl",
-            gl::VERTEX_SHADER,
+            VERTEX_SHADER,
             "Cubemap vertex shader",
         );
         let cubemap_frag_shd = gen_shader_from_file(
             "shader_src/cubemap_frag_shd.glsl",
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Cubemap fragment shader",
         );
         let ub_vertex_shd = gen_shader_from_file(
             "shader_src/ub_vertex_shd.glsl",
-            gl::VERTEX_SHADER,
+            VERTEX_SHADER,
             "UB vertex shader",
         );
         let ubo_frag_shd_1 = gen_shader(
             UBO_FRAG_SHADER_SRC_1,
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "UBO Use fragment shader 1",
         );
         let ubo_frag_shd_2 = gen_shader(
             UBO_FRAG_SHADER_SRC_2,
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "UBO Use fragment shader 2",
         );
         let ubo_frag_shd_3 = gen_shader(
             UBO_FRAG_SHADER_SRC_3,
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "UBO Use fragment shader 3",
         );
         let geometry_shd_1 = gen_shader_from_file(
             "shader_src/geometry_shd_1.glsl",
-            gl::GEOMETRY_SHADER,
+            GEOMETRY_SHADER,
             "Geometry Shader 1",
         );
         let frag_shd_4 = gen_shader(
-            FRAGMENT_SHADER_4_SRC,
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER_4_SRC, /* Rustfmt force vertical formatting */
+            FRAGMENT_SHADER,
             "Fragment Shader 4",
         );
         let explode_effect_geometry_shd = gen_shader_from_file(
             "shader_src/explode_effect_geometry_shd.glsl",
-            gl::GEOMETRY_SHADER,
+            GEOMETRY_SHADER,
             "Explode Effect geometry shader",
         );
         let draw_normals_geometry_shd = gen_shader_from_file(
             "shader_src/draw_normals_geometry_shd.glsl",
-            gl::GEOMETRY_SHADER,
+            GEOMETRY_SHADER,
             "Draw Normals geometry shader",
         );
         let ib_vertex_shd = gen_shader_from_file(
             "shader_src/ib_vertex_shd.glsl",
-            gl::VERTEX_SHADER,
+            VERTEX_SHADER,
             "IB vertex shader",
         );
         let single_color_alpha_frag_shd = gen_shader(
             SINGLE_COLOR_ALPHA_FRAG_SHADER_SRC,
-            gl::FRAGMENT_SHADER,
+            FRAGMENT_SHADER,
             "Single Color+Alpha fragment shader",
+        );
+        let instancing_vertex_shd = gen_shader_from_file(
+            "shader_src/instancing_vertex_shd.glsl",
+            VERTEX_SHADER,
+            "Instancing vertex shader",
         );
 
         let shader_programs = [
@@ -158,13 +164,20 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
                 cubemap_frag_shd,
                 "Environment Mapping shader",
             ),
+            // Safe to change ordering after this point
             (ub_vertex_shd, ubo_frag_shd_1, "UBO Use shader 1"),
             (ub_vertex_shd, ubo_frag_shd_2, "UBO Use shader 2"),
             (ub_vertex_shd, ubo_frag_shd_3, "UBO Use shader 3"),
             (ub_vertex_shd, blending_frag_shd, "UB Default shader"),
+            (
+                instancing_vertex_shd,
+                blending_frag_shd,
+                "Instancing shader",
+            ),
         ];
         let mut shader_program_ids = Vec::new();
         let mut shader_programs_index_keys = HashMap::new();
+        println!();
         for (vertex_shd, frag_shd, shd_program_name) in &shader_programs {
             let shd_program_id = gen_shader_program(
                 *vertex_shd,
@@ -200,8 +213,13 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
                 "Draw Normals shader",
             ),
         ];
-
-        for (vertex_shd, frag_shd, geometry_shader, shd_program_name) in &geometry_shader_programs {
+        for (
+            vertex_shd,
+            frag_shd,
+            geometry_shader,
+            shd_program_name, /* Rustfmt force vertical formatting */
+        ) in &geometry_shader_programs
+        {
             let shd_program_id = gen_geometry_shader_program(
                 *vertex_shd,
                 *frag_shd,
@@ -237,6 +255,7 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
         gl::DeleteShader(draw_normals_geometry_shd);
         gl::DeleteShader(ib_vertex_shd);
         gl::DeleteShader(single_color_alpha_frag_shd);
+        gl::DeleteShader(instancing_vertex_shd);
 
         (shader_program_ids, shader_programs_index_keys)
     }
