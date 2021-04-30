@@ -16,8 +16,11 @@ pub struct GlData {
     pub array_buffers: Vec<GLuint>,
     array_buffer_indexes: HashMap<String, usize>,
 
-    pub framebuffers: Vec<GLuint>,
-    pub texture_attachments: Vec<GLuint>,
+    //pub models: HashMap<String, >,
+    framebuffers: Vec<GLuint>,
+    framebuffer_indexes: HashMap<String, usize>,
+    texture_attachments: Vec<GLuint>,
+    tex_attachment_indexes: HashMap<String, usize>,
     pub render_buffer_attachments: Vec<GLuint>,
 
     pub uniform_buffers: Vec<GLuint>,
@@ -46,7 +49,9 @@ impl GlData {
             array_buffers,
             array_buffer_indexes: HashMap::new(),
             framebuffers: Vec::new(),
+            framebuffer_indexes: HashMap::new(),
             texture_attachments: Vec::new(),
+            tex_attachment_indexes: HashMap::new(),
             render_buffer_attachments: Vec::new(),
             uniform_buffers: Vec::new(),
             uniform_buffers_indexes: HashMap::new(),
@@ -103,6 +108,52 @@ impl GlData {
             panic!("There is no array buffer gl id for key: {}", key)
         }
     }
+
+    pub fn insert_framebuffer(&mut self, gl_id: GLuint, key: &str) {
+        self.framebuffers.push(gl_id);
+        self.framebuffer_indexes
+            .insert(key.to_string(), self.framebuffers.len() - 1);
+    }
+
+    pub fn get_framebuffer_gl_id(&self, key: &str) -> GLuint {
+        if let Some(index) = self.framebuffer_indexes.get(key) {
+            self.framebuffers[*index]
+        } else {
+            panic!("There is no framebuffer gl id for key: {}", key)
+        }
+    }
+
+    pub fn insert_texture_attachment(&mut self, gl_id: GLuint, key: &str) {
+        self.texture_attachments.push(gl_id);
+        self.tex_attachment_indexes
+            .insert(key.to_string(), self.texture_attachments.len() - 1);
+    }
+
+    pub fn get_texture_attachment_gl_id(&self, key: &str) -> GLuint {
+        if let Some(index) = self.tex_attachment_indexes.get(key) {
+            self.texture_attachments[*index]
+        } else {
+            panic!("There is no texture attachment gl id for key: {}", key)
+        }
+    }
+
+    pub fn insert_uniform_buffer(&mut self, gl_id: GLuint, key: &str) {
+        self.uniform_buffers_indexes
+            .insert(key.to_string(), self.uniform_buffers.len());
+        self.uniform_buffers.push(gl_id);
+    }
+
+    pub fn get_uniform_buffer_gl_id(&self, key: &str) -> GLuint {
+        if let Some(index) = self.uniform_buffers_indexes.get(key) {
+            self.uniform_buffers[*index]
+        } else {
+            panic!("There is no uniform buffer OpenGL id for key: {}", key)
+        }
+    }
+
+    /*pub fn add_model(&mut self) {}
+    //pub fn get_model_mut(&mut self) {}
+    pub fn get_model(&self) {}*/
 
     pub unsafe fn set_uniform_vec3f(
         &self,
@@ -177,18 +228,48 @@ impl GlData {
         gl::Uniform1i(var_location, v);
     }
 
-    pub fn get_uniform_buffer_gl_id(&self, key: &str) -> GLuint {
-        if let Some(index) = self.uniform_buffers_indexes.get(key) {
-            self.uniform_buffers[*index]
-        } else {
-            panic!("There is no uniform buffer OpenGL id for key: {}", key)
+    pub unsafe fn free_gl_resources(&mut self) {
+        gl::DeleteVertexArrays(
+            self.vertex_array_objects.len() as i32,
+            self.vertex_array_objects.as_ptr(),
+        );
+        self.vertex_array_objects.clear();
+        gl::DeleteBuffers(self.array_buffers.len() as i32, self.array_buffers.as_ptr());
+        self.array_buffers.clear();
+        self.array_buffer_indexes.clear();
+        for id in &self.shader_programs {
+            gl::DeleteProgram(*id)
         }
-    }
-
-    pub fn insert_uniform_buffer(&mut self, gl_id: GLuint, key: &str) {
-        self.uniform_buffers_indexes
-            .insert(key.to_string(), self.uniform_buffers.len());
-        self.uniform_buffers.push(gl_id);
+        self.shader_programs.clear();
+        self.shader_program_indexes.clear();
+        self.var_locations.clear();
+        gl::DeleteTextures(self.textures.len() as i32, self.textures.as_ptr());
+        self.textures.clear();
+        self.textures_indexes.clear();
+        gl::DeleteFramebuffers(
+            self.framebuffers.len() as i32,
+            self.framebuffers.as_ptr(), /* Rustfmt force vertical formatting */
+        );
+        self.framebuffers.clear();
+        self.framebuffer_indexes.clear();
+        gl::DeleteTextures(
+            self.texture_attachments.len() as i32,
+            self.texture_attachments.as_ptr(),
+        );
+        self.texture_attachments.clear();
+        self.tex_attachment_indexes.clear();
+        gl::DeleteRenderbuffers(
+            self.render_buffer_attachments.len() as i32,
+            self.render_buffer_attachments.as_ptr(),
+        );
+        self.texture_attachments.clear();
+        self.tex_attachment_indexes.clear();
+        gl::DeleteBuffers(
+            self.uniform_buffers.len() as i32,
+            self.uniform_buffers.as_ptr(),
+        );
+        self.uniform_buffers.clear();
+        self.uniform_buffers_indexes.clear();
     }
 }
 

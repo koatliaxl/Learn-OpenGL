@@ -5,6 +5,11 @@ use crate::gl::types::GLenum;
 use crate::state_and_cfg::GlData;
 use glfw::Window;
 use mat_vec::{Matrix4x4, Vector3};
+use opengl_learn::check_framebuffer_gl_status;
+
+static mut POST_PROCESSING_OPTION: PostProcessingOption = PostProcessingOption::None;
+static mut REAR_VIEW_MIRROR_POST_PROCESSING_OPTION: PostProcessingOption =
+    PostProcessingOption::None;
 
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
@@ -29,7 +34,6 @@ pub unsafe fn draw_framebuffers(
     gfx: &GlData,
     //view_matrix: &Matrix4x4<f32>,
     projection_matrix: &Matrix4x4<f32>,
-    mode: PostProcessingOption,
     camera: Camera,
 ) {
     gl::UseProgram(gfx.shader_programs[7]);
@@ -39,7 +43,8 @@ pub unsafe fn draw_framebuffers(
     gl::Enable(gl::DEPTH_TEST);
 
     // Draw to Mirror obj
-    gl::BindFramebuffer(gl::FRAMEBUFFER, gfx.framebuffers[2]);
+    let fb_id = gfx.get_framebuffer_gl_id("Mirror reflection framebuffer");
+    gl::BindFramebuffer(gl::FRAMEBUFFER, fb_id);
     gl::ClearColor(0.4, 0.5, 0.4, 1.0);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     let mirror_pos = Vector3::new(0.0, 2.0, -5.0);
@@ -80,7 +85,8 @@ pub unsafe fn draw_framebuffers(
     gfx.set_uniform_mat4x4("projection_mat", 7, projection_matrix);
 
     // Draw to rear-view mirror
-    gl::BindFramebuffer(gl::FRAMEBUFFER, gfx.framebuffers[1]);
+    let fb_id = gfx.get_framebuffer_gl_id("Mirror Rear-view framebuffer");
+    gl::BindFramebuffer(gl::FRAMEBUFFER, fb_id);
     gl::ClearColor(0.4, 0.4, 0.4, 1.0);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     let mut rear_view_mirror_camera = camera.clone();
@@ -100,13 +106,15 @@ pub unsafe fn draw_framebuffers(
     let (mx, my, mz) = mirror_pos.get_components();
     mirror_obj_model_mat = Matrix4x4::new_translation(mx, my, mz) * mirror_obj_model_mat;
     gfx.set_uniform_mat4x4("model_mat", 7, &mirror_obj_model_mat);
-    gl::BindTexture(gl::TEXTURE_2D, gfx.texture_attachments[2]);
+    let tex_att_id = gfx.get_texture_attachment_gl_id("Mirror reflection texture attachment");
+    gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
     gfx.set_uniform_mat4x4("projection_mat", 7, projection_matrix);
 
     // Draw to texture
-    gl::BindFramebuffer(gl::FRAMEBUFFER, gfx.framebuffers[0]);
+    let fb_id = gfx.get_framebuffer_gl_id("Framebuffer 1");
+    gl::BindFramebuffer(gl::FRAMEBUFFER, fb_id);
     gl::ClearColor(0.2, 0.2, 0.2, 1.0);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     gfx.set_uniform_mat4x4("view_mat", 7, &camera.look_at_matrix);
@@ -116,7 +124,7 @@ pub unsafe fn draw_framebuffers(
     draw_floor(gfx, 7);
     // Draw Mirror obj (draw to texture)
     gfx.set_uniform_mat4x4("model_mat", 7, &mirror_obj_model_mat);
-    gl::BindTexture(gl::TEXTURE_2D, gfx.texture_attachments[2]);
+    gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
     gl::UseProgram(gfx.shader_programs[8]);
@@ -131,25 +139,39 @@ pub unsafe fn draw_framebuffers(
     gl::Clear(gl::COLOR_BUFFER_BIT);
     let model_mat = Matrix4x4::new_scaling(2.0, 2.0, 0.0);
     gfx.set_uniform_mat4x4("model_mat", 8, &model_mat);
-    gfx.set_uniform_1i("mode", 8, mode.int_code());
-    gl::BindTexture(gl::TEXTURE_2D, gfx.texture_attachments[0]);
+    gfx.set_uniform_1i("mode", 8, POST_PROCESSING_OPTION.int_code());
+    let tex_att_id = gfx.get_texture_attachment_gl_id("Texture Attachment 1");
+    gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
     // Draw rear-view mirror
     let mut model_mat = Matrix4x4::new_scaling(1.0, 0.5, 0.0);
     model_mat = Matrix4x4::new_translation(0.0, 0.7, 0.0) * model_mat;
     gfx.set_uniform_mat4x4("model_mat", 8, &model_mat);
-    gfx.set_uniform_1i("mode", 8, PostProcessingOption::GaussianBlur5x5.int_code());
-    gl::BindTexture(gl::TEXTURE_2D, gfx.texture_attachments[1]);
+    gfx.set_uniform_1i(
+        "mode",
+        8,
+        REAR_VIEW_MIRROR_POST_PROCESSING_OPTION.int_code(), /* Rustfmt force vertical formatting */
+    );
+    let tex_att_id = gfx.get_texture_attachment_gl_id("Mirror Rear-view texture attachment");
+    gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
 }
 
-pub unsafe fn setup_framebuffers(gfx: &mut GlData, window: &Window) {
+pub unsafe fn setup_framebuffers(
+    gfx: &mut GlData,
+    window: &Window,
+    post_processing_opt: PostProcessingOption,
+    rear_view_mirror_post_processing_opt: PostProcessingOption,
+) {
+    POST_PROCESSING_OPTION = post_processing_opt;
+    REAR_VIEW_MIRROR_POST_PROCESSING_OPTION = rear_view_mirror_post_processing_opt;
     println!();
     create_framebuffer(
         gfx,
         window,
         "Framebuffer 1",
+        "Texture Attachment 1",
         gl::NEAREST,
         gl::NEAREST, /* Rustfmt force vertical formatting */
     );
@@ -157,6 +179,7 @@ pub unsafe fn setup_framebuffers(gfx: &mut GlData, window: &Window) {
         gfx,
         window,
         "Mirror Rear-view framebuffer",
+        "Mirror Rear-view texture attachment",
         gl::LINEAR,
         gl::LINEAR,
     );
@@ -164,6 +187,7 @@ pub unsafe fn setup_framebuffers(gfx: &mut GlData, window: &Window) {
         gfx,
         window,
         "Mirror reflection framebuffer",
+        "Mirror reflection texture attachment",
         gl::LINEAR,
         gl::LINEAR,
     );
@@ -174,6 +198,7 @@ unsafe fn create_framebuffer(
     gfx: &mut GlData,
     window: &Window,
     name: &str,
+    tex_attachment_name: &str,
     tex_min_filter: GLenum,
     tex_mag_filter: GLenum,
 ) {
@@ -246,22 +271,11 @@ unsafe fn create_framebuffer(
         render_buffer,
     );
 
-    let status = match gl::CheckFramebufferStatus(gl::FRAMEBUFFER) {
-        gl::FRAMEBUFFER_COMPLETE => "COMPLETE",
-        gl::FRAMEBUFFER_UNDEFINED => "UNDEFINED",
-        gl::FRAMEBUFFER_INCOMPLETE_ATTACHMENT => "INCOMPLETE_ATTACHMENT",
-        gl::FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT => "INCOMPLETE_MISSING_ATTACHMENT",
-        gl::FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER => "INCOMPLETE_DRAW_BUFFER",
-        gl::FRAMEBUFFER_INCOMPLETE_READ_BUFFER => "INCOMPLETE_READ_BUFFER",
-        gl::FRAMEBUFFER_UNSUPPORTED => "UNSUPPORTED",
-        gl::FRAMEBUFFER_INCOMPLETE_MULTISAMPLE => "INCOMPLETE_MULTISAMPLE",
-        gl::FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS => "INCOMPLETE_LAYER_TARGETS",
-        _ => "Error",
-    };
-    println!("{1:} status: {}", status, name);
+    let status = check_framebuffer_gl_status();
+    println!("\"{1:}\" status: {}", status, name);
 
-    gfx.framebuffers.push(fbo_id);
-    gfx.texture_attachments.push(tex_color_buf);
+    gfx.insert_framebuffer(fbo_id, name);
+    gfx.insert_texture_attachment(tex_color_buf, tex_attachment_name);
     gfx.render_buffer_attachments.push(render_buffer);
 }
 

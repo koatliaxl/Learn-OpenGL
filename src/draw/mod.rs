@@ -1,4 +1,5 @@
 mod adv_data_use;
+mod antialiasing;
 mod backpack;
 mod blending;
 mod cubemap;
@@ -14,9 +15,9 @@ mod ubo_use;
 
 use self::cubes::draw_cubes;
 use self::{
-    adv_data_use::*, backpack::*, blending::*, cubemap::*, depth_texting::*, face_culling::*,
-    framebuffers::*, geometry_shader_use::*, instancing::*, lighting::*, stencil_testing::*,
-    ubo_use::*,
+    adv_data_use::*, antialiasing::*, backpack::*, blending::*, cubemap::*, depth_texting::*,
+    face_culling::*, framebuffers::*, geometry_shader_use::*, instancing::*, lighting::*,
+    stencil_testing::*, ubo_use::*,
 };
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
@@ -26,7 +27,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = Instancing(Asteroids);
+static DRAW: Draw = AntiAliasing;
 
 #[allow(unused)]
 enum Draw {
@@ -43,6 +44,7 @@ enum Draw {
     UniformBufferObjectsUse,
     GeometryShaderUse(GeomShdUseOpt),
     Instancing(InstancingOption),
+    AntiAliasing,
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -116,7 +118,6 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
                 gfx,
                 //&view_mat,
                 &projection_mat,
-                PostProcessingOption::CustomKernel2,
                 state.camera.clone(),
             ),
             CubeMap => draw_cubemap_scene(
@@ -129,6 +130,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             UniformBufferObjectsUse => draw_ubo_use(gfx),
             GeometryShaderUse(opt) => draw_geometry_shd_use(gfx, model, time, opt),
             Instancing(_) => instancing_draw(gfx),
+            AntiAliasing => draw_antialiasing(gfx),
             _ => {}
         }
     }
@@ -145,11 +147,17 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             StencilTestingScene => setup_stencil_testing_scene(),
             BlendingScene => setup_blending_scene(),
             FaceCulling => setup_face_culling(),
-            FrameBuffers => setup_framebuffers(gfx, window),
+            FrameBuffers => setup_framebuffers(
+                gfx,
+                window,
+                PostProcessingOption::CustomKernel2,
+                PostProcessingOption::GaussianBlur5x5,
+            ),
             CubeMap => setup_cubemap_scene(gfx, model),
             UniformBufferObjectsUse => setup_ubo_use(gfx),
             GeometryShaderUse(opt) => setup_geometry_shd_use(gfx, model, opt),
             Instancing(opt) => setup_instancing(gfx, opt, state),
+            AntiAliasing => setup_antialiasing(gfx),
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}
@@ -171,9 +179,49 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             0,
             Matrix4x4::<f32>::size_of_raw_data() as isize * 2,
         );
+        // alternative to BindBufferRange()
         //gl::BindBufferBase(gl::UNIFORM_BUFFER, 0, ubo_matrices);
         gfx.insert_uniform_buffer(ubo_matrices, "Matrices");
+        // Next not really needed because the "Matrices" binds to 0,
+        // and uniform blocks of the shaders have this value initially.
+        bind_uniform_block(
+            "Matrices",
+            "UB Default shader",
+            0,
+            gfx, /* Rustfmt force vertical formatting */
+        );
+        bind_uniform_block(
+            "Matrices",
+            "Instancing shader",
+            0,
+            gfx, /* Rustfmt force vertical formatting */
+        );
+        bind_uniform_block(
+            "Matrices",
+            "UBO Use shader 2",
+            0,
+            gfx, /* Rustfmt force vertical formatting */
+        );
     }
+}
+
+unsafe fn bind_uniform_block(
+    uniform_block_name: &str,
+    shader_program_name: &str,
+    binding_point: u32,
+    gfx: &GlData,
+) {
+    let ub_name = uniform_block_name.to_string() + "\0";
+    let shd_id = gfx.get_shader_program_gl_id(shader_program_name);
+    let uniform_block_idx = gl::GetUniformBlockIndex(
+        shd_id,
+        ub_name.as_ptr() as *const i8, /* Rustfmt force vertical formatting */
+    );
+    gl::UniformBlockBinding(
+        shd_id,
+        uniform_block_idx,
+        binding_point, /* Rustfmt force vertical formatting */
+    );
 }
 
 unsafe fn draw_floor(gfx: &GlData, shader_program_idx: usize) {

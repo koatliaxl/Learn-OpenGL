@@ -42,28 +42,7 @@ fn main() {
         draw(&gfx, &mut state, time as f32, &mut model);
     }
     unsafe {
-        gl::DeleteVertexArrays(
-            gfx.vertex_array_objects.len() as i32,
-            gfx.vertex_array_objects.as_ptr(),
-        );
-        gl::DeleteBuffers(gfx.array_buffers.len() as i32, gfx.array_buffers.as_ptr());
-        for id in gfx.shader_programs {
-            gl::DeleteProgram(id)
-        }
-        gl::DeleteTextures(gfx.textures.len() as i32, gfx.textures.as_ptr());
+        gfx.free_gl_resources();
         model.free_gl_resources();
-        gl::DeleteFramebuffers(gfx.framebuffers.len() as i32, gfx.framebuffers.as_ptr());
-        gl::DeleteTextures(
-            gfx.texture_attachments.len() as i32,
-            gfx.texture_attachments.as_ptr(),
-        );
-        gl::DeleteRenderbuffers(
-            gfx.render_buffer_attachments.len() as i32,
-            gfx.render_buffer_attachments.as_ptr(),
-        );
-        gl::DeleteBuffers(
-            gfx.uniform_buffers.len() as i32,
-            gfx.uniform_buffers.as_ptr(),
-        );
     }
 }

@@ -71,24 +71,9 @@ pub unsafe fn instancing_draw(gfx: &GlData) {
 pub unsafe fn setup_instancing(gfx: &mut GlData, opt: InstancingOption, state: &mut State) {
     DRAW_OPTION = opt;
 
-    let shd_id = gfx.get_shader_program_gl_id("Instancing shader");
-    let uniform_block_idx = gl::GetUniformBlockIndex(
-        shd_id,
-        "Matrices\0".as_ptr() as *const i8, /* Rustfmt force vertical formatting */
-    );
-    gl::UniformBlockBinding(shd_id, uniform_block_idx, 0);
-
     let shd_idx = gfx.get_shader_program_index("Instancing shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
     gfx.set_uniform_1i("draw_option", shd_idx, DRAW_OPTION.int_code());
-
-    // Why work without this?:
-    /*let shd_id = gfx.get_shader_program_gl_id("UB Default shader");
-    let uniform_block_idx = gl::GetUniformBlockIndex(
-        shd_id,
-        "Matrices\0".as_ptr() as *const i8, /* Rustfmt force vertical formatting */
-    );
-    gl::UniformBlockBinding(shd_id, uniform_block_idx, 0);*/
 
     if let Containers = DRAW_OPTION {
         let mut offsets = [0.0; 100 * 3];
@@ -175,19 +160,12 @@ pub unsafe fn setup_instancing(gfx: &mut GlData, opt: InstancingOption, state: &
             let mut instancing_vbo = 0;
             gl::GenBuffers(1, &mut instancing_vbo);
             gl::BindBuffer(ARRAY_BUFFER, instancing_vbo);
-            /*gl::BufferData(
-                ARRAY_BUFFER,
-                (ASTEROID_MODEL_MATRICES.len() * Matrix4x4::<f32>::size_of_raw_data()) as isize,
-                ASTEROID_MODEL_MATRICES.as_ptr() as *const c_void,
-                gl::STATIC_DRAW,
-            );*/
             let mut raw_data = Vec::new();
             for matrix in &ASTEROID_MODEL_MATRICES {
                 let matrix = matrix.transpose();
-                for r in 0..4 {
-                    for c in 0..4 {
-                        raw_data.push(matrix[(r, c)]);
-                    }
+                let mat_raw = matrix.get_raw_data();
+                for val in mat_raw {
+                    raw_data.push(*val);
                 }
             }
             gl::BufferData(
@@ -247,7 +225,6 @@ pub unsafe fn setup_instancing(gfx: &mut GlData, opt: InstancingOption, state: &
 
         state.camera.speed = 30.0;
         state.camera.position = Vector3::new(0.0, 3.0, 20.0);
-        //crate::process_input::CAMERA_SPEED = 20.0;
     }
 }
 

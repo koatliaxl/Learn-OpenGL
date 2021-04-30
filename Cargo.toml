@@ -23,5 +23,5 @@ rand = "0.8.3"
 git = "https://github.com/koatliaxl/mat_vec.git"
 branch = "main"
 
-[workspace]
-members = ["mat_vec"]
+#[workspace]
+#members = ["mat_vec"]
