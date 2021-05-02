@@ -131,6 +131,11 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             VERTEX_SHADER,
             "Instancing vertex shader",
         );
+        let custom_anti_alias_frag = gen_shader_from_file(
+            "shader_src/custom_anti_aliasing_frag.glsl",
+            FRAGMENT_SHADER,
+            "Custom Anti-aliasing fragment shader",
+        );
 
         let shader_programs = [
             (vertex_shader_id, fragment_shader_id, "Shader 1"),
@@ -173,6 +178,11 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
                 instancing_vertex_shd,
                 blending_frag_shd,
                 "Instancing shader",
+            ),
+            (
+                model_vertex_shd_id,
+                custom_anti_alias_frag,
+                "Custom Anti-aliasing shader",
             ),
         ];
         let mut shader_program_ids = Vec::new();
@@ -256,6 +266,7 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
         gl::DeleteShader(ib_vertex_shd);
         gl::DeleteShader(single_color_alpha_frag_shd);
         gl::DeleteShader(instancing_vertex_shd);
+        gl::DeleteShader(custom_anti_alias_frag);
 
         (shader_program_ids, shader_programs_index_keys)
     }

@@ -91,7 +91,7 @@ pub unsafe fn setup_instancing(gfx: &mut GlData, opt: InstancingOption, state: &
             offsets.as_ptr() as *const c_void,
             gl::STATIC_DRAW,
         );
-        gfx.insert_array_buffer(instance_vbo, "Offsets");
+        gfx.add_array_buffer(instance_vbo, "Offsets");
 
         gl::BindVertexArray(gfx.vertex_array_objects[1]);
         gl::EnableVertexAttribArray(8);
@@ -174,7 +174,7 @@ pub unsafe fn setup_instancing(gfx: &mut GlData, opt: InstancingOption, state: &
                 raw_data.as_ptr() as *const c_void,
                 gl::STATIC_DRAW,
             );
-            gfx.insert_array_buffer(instancing_vbo, "Asteroid Model Matrices");
+            gfx.add_array_buffer(instancing_vbo, "Asteroid Model Matrices");
 
             const SIZE_OF_VEC4: i32 = (4 * SIZE_OF_GL_FLOAT) as i32;
             let vertex_arrays = MODELS[1].get_meshes_vertex_array_ids();

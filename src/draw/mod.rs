@@ -27,7 +27,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = AntiAliasing;
+static DRAW: Draw = AntiAliasing { samples: 8 };
 
 #[allow(unused)]
 enum Draw {
@@ -44,7 +44,7 @@ enum Draw {
     UniformBufferObjectsUse,
     GeometryShaderUse(GeomShdUseOpt),
     Instancing(InstancingOption),
-    AntiAliasing,
+    AntiAliasing { samples: u32 },
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -130,7 +130,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             UniformBufferObjectsUse => draw_ubo_use(gfx),
             GeometryShaderUse(opt) => draw_geometry_shd_use(gfx, model, time, opt),
             Instancing(_) => instancing_draw(gfx),
-            AntiAliasing => draw_antialiasing(gfx),
+            AntiAliasing { .. } => draw_antialiasing(gfx),
             _ => {}
         }
     }
@@ -149,7 +149,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             FaceCulling => setup_face_culling(),
             FrameBuffers => setup_framebuffers(
                 gfx,
-                window,
+                window.get_size(),
                 PostProcessingOption::CustomKernel2,
                 PostProcessingOption::GaussianBlur5x5,
             ),
@@ -157,7 +157,12 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             UniformBufferObjectsUse => setup_ubo_use(gfx),
             GeometryShaderUse(opt) => setup_geometry_shd_use(gfx, model, opt),
             Instancing(opt) => setup_instancing(gfx, opt, state),
-            AntiAliasing => setup_antialiasing(gfx),
+            AntiAliasing { samples } => setup_antialiasing(
+                gfx,
+                window.get_size(),
+                samples,
+                AntiAliasingMode::DirectOutput,
+            ),
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}
@@ -181,7 +186,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         );
         // alternative to BindBufferRange()
         //gl::BindBufferBase(gl::UNIFORM_BUFFER, 0, ubo_matrices);
-        gfx.insert_uniform_buffer(ubo_matrices, "Matrices");
+        gfx.add_uniform_buffer(ubo_matrices, "Matrices");
         // Next not really needed because the "Matrices" binds to 0,
         // and uniform blocks of the shaders have this value initially.
         bind_uniform_block(

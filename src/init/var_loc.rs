@@ -16,6 +16,10 @@ pub fn get_variable_locations_2(
         ("Draw Normals shader", vec!["model_mat", "rgba"]),
         ("UB Default shader", vec!["model_mat"]),
         ("Instancing shader", vec!["model_mat", "draw_option"]),
+        (
+            "Custom Anti-aliasing shader",
+            vec!["model_mat", "view_mat", "projection_mat"],
+        ),
     ];
     let variables = variables
         .iter()

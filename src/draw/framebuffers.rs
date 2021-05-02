@@ -3,7 +3,6 @@ use crate::camera::Camera;
 use crate::gl;
 use crate::gl::types::GLenum;
 use crate::state_and_cfg::GlData;
-use glfw::Window;
 use mat_vec::{Matrix4x4, Vector3};
 use opengl_learn::check_framebuffer_gl_status;
 
@@ -160,7 +159,7 @@ pub unsafe fn draw_framebuffers(
 
 pub unsafe fn setup_framebuffers(
     gfx: &mut GlData,
-    window: &Window,
+    window_size: (i32, i32),
     post_processing_opt: PostProcessingOption,
     rear_view_mirror_post_processing_opt: PostProcessingOption,
 ) {
@@ -169,7 +168,7 @@ pub unsafe fn setup_framebuffers(
     println!();
     create_framebuffer(
         gfx,
-        window,
+        window_size,
         "Framebuffer 1",
         "Texture Attachment 1",
         gl::NEAREST,
@@ -177,7 +176,7 @@ pub unsafe fn setup_framebuffers(
     );
     create_framebuffer(
         gfx,
-        window,
+        window_size,
         "Mirror Rear-view framebuffer",
         "Mirror Rear-view texture attachment",
         gl::LINEAR,
@@ -185,7 +184,7 @@ pub unsafe fn setup_framebuffers(
     );
     create_framebuffer(
         gfx,
-        window,
+        window_size,
         "Mirror reflection framebuffer",
         "Mirror reflection texture attachment",
         gl::LINEAR,
@@ -194,9 +193,9 @@ pub unsafe fn setup_framebuffers(
 }
 
 #[allow(unused_imports)]
-unsafe fn create_framebuffer(
+pub unsafe fn create_framebuffer(
     gfx: &mut GlData,
-    window: &Window,
+    window_size: (i32, i32),
     name: &str,
     tex_attachment_name: &str,
     tex_min_filter: GLenum,
@@ -214,8 +213,8 @@ unsafe fn create_framebuffer(
         gl::TEXTURE_2D,
         0,
         gl::RGB as i32,
-        window.get_size().0,
-        window.get_size().1,
+        window_size.0,
+        window_size.1,
         0,
         gl::RGB,
         gl::UNSIGNED_BYTE,
@@ -261,8 +260,8 @@ unsafe fn create_framebuffer(
     gl::RenderbufferStorage(
         gl::RENDERBUFFER,
         gl::DEPTH24_STENCIL8,
-        window.get_size().0,
-        window.get_size().1,
+        window_size.0,
+        window_size.1,
     );
     gl::FramebufferRenderbuffer(
         FRAMEBUFFER,
@@ -274,13 +273,13 @@ unsafe fn create_framebuffer(
     let status = check_framebuffer_gl_status();
     println!("\"{1:}\" status: {}", status, name);
 
-    gfx.insert_framebuffer(fbo_id, name);
-    gfx.insert_texture_attachment(tex_color_buf, tex_attachment_name);
+    gfx.add_framebuffer(fbo_id, name);
+    gfx.add_texture_attachment(tex_color_buf, tex_attachment_name);
     gfx.render_buffer_attachments.push(render_buffer);
 }
 
 impl PostProcessingOption {
-    fn int_code(&self) -> i32 {
+    pub fn int_code(&self) -> i32 {
         use PostProcessingOption::*;
         match self {
             None => 0,

@@ -13,7 +13,8 @@ pub const SINGLE_COLOR_FRAG_SHADER_SRC: &str = "
     uniform vec3 color;
     void main() {
         FragColor = vec4(color, 1.0);
-}";
+    }
+";
 
 pub const FRAGMENT_SHADER_4_SRC: &str = "
     #version 330 core

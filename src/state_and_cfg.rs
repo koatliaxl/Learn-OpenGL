@@ -82,7 +82,6 @@ impl GlData {
         }
     }
 
-    #[allow(dead_code)]
     pub unsafe fn use_shader_program(&self, key: &str) {
         gl::UseProgram(self.get_shader_program_gl_id(key));
     }
@@ -95,7 +94,7 @@ impl GlData {
         }
     }
 
-    pub fn insert_array_buffer(&mut self, gl_id: GLuint, key: &str) {
+    pub fn add_array_buffer(&mut self, gl_id: GLuint, key: &str) {
         self.array_buffers.push(gl_id);
         self.array_buffer_indexes
             .insert(key.to_string(), self.array_buffers.len() - 1);
@@ -109,7 +108,7 @@ impl GlData {
         }
     }
 
-    pub fn insert_framebuffer(&mut self, gl_id: GLuint, key: &str) {
+    pub fn add_framebuffer(&mut self, gl_id: GLuint, key: &str) {
         self.framebuffers.push(gl_id);
         self.framebuffer_indexes
             .insert(key.to_string(), self.framebuffers.len() - 1);
@@ -123,7 +122,7 @@ impl GlData {
         }
     }
 
-    pub fn insert_texture_attachment(&mut self, gl_id: GLuint, key: &str) {
+    pub fn add_texture_attachment(&mut self, gl_id: GLuint, key: &str) {
         self.texture_attachments.push(gl_id);
         self.tex_attachment_indexes
             .insert(key.to_string(), self.texture_attachments.len() - 1);
@@ -137,7 +136,7 @@ impl GlData {
         }
     }
 
-    pub fn insert_uniform_buffer(&mut self, gl_id: GLuint, key: &str) {
+    pub fn add_uniform_buffer(&mut self, gl_id: GLuint, key: &str) {
         self.uniform_buffers_indexes
             .insert(key.to_string(), self.uniform_buffers.len());
         self.uniform_buffers.push(gl_id);

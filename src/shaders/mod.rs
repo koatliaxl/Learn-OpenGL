@@ -1,6 +1,6 @@
-mod shader_src;
+mod internal_shader_src;
 
-pub use shader_src::*;
+pub use internal_shader_src::*;
 
 use crate::gl;
 use crate::gl::types::GLenum;
