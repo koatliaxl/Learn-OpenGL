@@ -1,9 +1,9 @@
 use crate::gl;
 use crate::shaders::*;
+use crate::state_and_cfg::GlData;
 use gl::{FRAGMENT_SHADER, GEOMETRY_SHADER, VERTEX_SHADER};
-use std::collections::HashMap;
 
-pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
+pub fn init_shader_programs(gl_data: &mut GlData) {
     println!();
     unsafe {
         let vertex_shader_id = gen_shader(
@@ -136,6 +136,11 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
             FRAGMENT_SHADER,
             "Custom Anti-aliasing fragment shader",
         );
+        let adv_lighting_frag = gen_shader_from_file(
+            "shader_src/adv_lighting_frag.glsl",
+            FRAGMENT_SHADER,
+            "Advanced Lighting fragment shader",
+        );
 
         let shader_programs = [
             (vertex_shader_id, fragment_shader_id, "Shader 1"),
@@ -184,9 +189,13 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
                 custom_anti_alias_frag,
                 "Custom Anti-aliasing shader",
             ),
+            (ub_vertex_shd, adv_lighting_frag, "Advanced Lighting shader"),
+            (
+                ub_vertex_shd,
+                single_color_frag_shd_id,
+                "Single Color shader",
+            ),
         ];
-        let mut shader_program_ids = Vec::new();
-        let mut shader_programs_index_keys = HashMap::new();
         println!();
         for (vertex_shd, frag_shd, shd_program_name) in &shader_programs {
             let shd_program_id = gen_shader_program(
@@ -194,14 +203,8 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
                 *frag_shd,
                 shd_program_name, /* Rustfmt force vertical formatting */
             );
-            shader_program_ids.push(shd_program_id);
-            shader_programs_index_keys
-                .insert(shd_program_name.to_string(), shader_program_ids.len() - 1);
+            gl_data.add_shader_program(shd_program_id, shd_program_name);
         }
-        shader_programs_index_keys.insert(
-            "Default shader".to_string(),
-            *shader_programs_index_keys.get("Blending shader").unwrap(),
-        );
 
         let geometry_shader_programs = [
             (
@@ -236,9 +239,7 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
                 *geometry_shader,
                 shd_program_name,
             );
-            shader_program_ids.push(shd_program_id);
-            shader_programs_index_keys
-                .insert(shd_program_name.to_string(), shader_program_ids.len() - 1);
+            gl_data.add_shader_program(shd_program_id, shd_program_name);
         }
 
         gl::DeleteShader(vertex_shader_id);
@@ -267,7 +268,6 @@ pub fn init_shader_programs() -> (Vec<u32>, HashMap<String, usize>) {
         gl::DeleteShader(single_color_alpha_frag_shd);
         gl::DeleteShader(instancing_vertex_shd);
         gl::DeleteShader(custom_anti_alias_frag);
-
-        (shader_program_ids, shader_programs_index_keys)
+        gl::DeleteShader(adv_lighting_frag);
     }
 }

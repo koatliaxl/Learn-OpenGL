@@ -48,12 +48,12 @@ pub unsafe fn setup_ubo_use(gfx: &GlData) {
     );
     gl::UniformBlockBinding(shd_id, uniform_block_idx, 0);
 
-    let shd_id = gfx.get_shader_program_gl_id("UBO Use shader 2");
+    /*let shd_id = gfx.get_shader_program_gl_id("UBO Use shader 2");
     let uniform_block_idx = gl::GetUniformBlockIndex(
         shd_id,
         "Matrices\0".as_ptr() as *const i8, /* Rustfmt force vertical formatting */
     );
-    gl::UniformBlockBinding(shd_id, uniform_block_idx, 0);
+    gl::UniformBlockBinding(shd_id, uniform_block_idx, 0);*/
 
     let shd_id = gfx.get_shader_program_gl_id("UBO Use shader 3");
     let uniform_block_idx = gl::GetUniformBlockIndex(

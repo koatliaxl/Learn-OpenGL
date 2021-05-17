@@ -1,4 +1,3 @@
-use crate::gl::types::GLuint;
 #[allow(unused_imports)]
 use crate::gl::{CLAMP_TO_BORDER, CLAMP_TO_EDGE, MIRRORED_REPEAT, REPEAT};
 #[allow(unused_imports)]
@@ -7,10 +6,10 @@ use crate::gl::{
     NEAREST_MIPMAP_NEAREST,
 };
 use crate::load_tex::load_texture;
-use std::collections::HashMap;
+use crate::state_and_cfg::GlData;
 
 #[allow(deprecated)]
-pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<String, usize>) {
+pub fn init_textures(gl_data: &mut GlData) {
     println!();
     use crate::load_tex::load_tex_and_set_shd_var;
     unsafe {
@@ -22,7 +21,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<Str
             REPEAT,
             LINEAR_MIPMAP_LINEAR,
             NEAREST,
-            shader_programs[1],
+            gl_data.shader_programs[1],
         );
         let awf_texture_id = load_tex_and_set_shd_var(
             "assets/awesomeface.png",
@@ -32,7 +31,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<Str
             REPEAT,
             LINEAR,
             LINEAR,
-            shader_programs[1],
+            gl_data.shader_programs[1],
         );
         let con_texture_id = load_tex_and_set_shd_var(
             "assets/container.jpg",
@@ -42,7 +41,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<Str
             CLAMP_TO_BORDER,
             LINEAR,
             LINEAR,
-            shader_programs[1],
+            gl_data.shader_programs[1],
         );
         let con2_texture_id = load_tex_and_set_shd_var(
             "assets/container2.png",
@@ -52,7 +51,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<Str
             CLAMP_TO_BORDER,
             LINEAR_MIPMAP_LINEAR,
             LINEAR,
-            shader_programs[2],
+            gl_data.shader_programs[2],
         );
         let con2_specular_map_id = load_tex_and_set_shd_var(
             "assets/container2_specular.png",
@@ -62,7 +61,7 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<Str
             CLAMP_TO_BORDER,
             LINEAR_MIPMAP_LINEAR,
             LINEAR,
-            shader_programs[2],
+            gl_data.shader_programs[2],
         );
         let emission_map_id = load_tex_and_set_shd_var(
             "assets/matrix.jpg",
@@ -72,22 +71,14 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<Str
             CLAMP_TO_BORDER,
             LINEAR_MIPMAP_LINEAR,
             LINEAR,
-            shader_programs[2],
+            gl_data.shader_programs[2],
         );
-        let mut textures = Vec::new();
-        let mut texture_indexes = HashMap::new();
-        textures.push(wall_texture_id);
-        texture_indexes.insert("Wall texture".to_string(), textures.len() - 1);
-        textures.push(awf_texture_id);
-        texture_indexes.insert("AwF texture".to_string(), textures.len() - 1);
-        textures.push(con_texture_id);
-        texture_indexes.insert("Container texture".to_string(), textures.len() - 1);
-        textures.push(con2_texture_id);
-        texture_indexes.insert("Container 2 texture".to_string(), textures.len() - 1);
-        textures.push(con2_specular_map_id);
-        texture_indexes.insert("Container 2 specular map".to_string(), textures.len() - 1);
-        textures.push(emission_map_id);
-        texture_indexes.insert("Container 2 emission map".to_string(), textures.len() - 1);
+        gl_data.add_texture(wall_texture_id, "Wall texture");
+        gl_data.add_texture(awf_texture_id, "AwF texture");
+        gl_data.add_texture(con_texture_id, "Container texture");
+        gl_data.add_texture(con2_texture_id, "Container 2 texture");
+        gl_data.add_texture(con2_specular_map_id, "Container 2 specular map");
+        gl_data.add_texture(emission_map_id, "Container 2 emission map");
         let textures_to_load = [
             (
                 "assets/metal.png",
@@ -114,19 +105,24 @@ pub fn init_textures(shader_programs: &Vec<GLuint>) -> (Vec<GLuint>, HashMap<Str
                 LINEAR,
             ),
             // Safe to change ordering after this
-            /*(
-                "assets/grass.png",
-                CLAMP_TO_EDGE,
-                CLAMP_TO_EDGE,
+            (
+                "assets/wood.png",
+                "Wood Flooring",
+                REPEAT,
+                REPEAT,
                 LINEAR_MIPMAP_LINEAR,
                 LINEAR,
-            ),*/
+            ), /*(
+                   "assets/grass.png",
+                   CLAMP_TO_EDGE,
+                   CLAMP_TO_EDGE,
+                   LINEAR_MIPMAP_LINEAR,
+                   LINEAR,
+               ),*/
         ];
         for (path, name, wrap_s, wrap_t, min_filter, mag_filter) in &textures_to_load {
             let tex_gl_id = load_texture(path, *wrap_s, *wrap_t, *min_filter, *mag_filter);
-            texture_indexes.insert(name.to_string(), textures.len());
-            textures.push(tex_gl_id);
+            gl_data.add_texture(tex_gl_id, name);
         }
-        (textures, texture_indexes)
     }
 }

@@ -1,12 +1,7 @@
 use crate::gl;
-use crate::gl::types::{GLint, GLuint};
-use std::collections::HashMap;
+use crate::state_and_cfg::GlData;
 
-pub fn get_variable_locations_2(
-    shader_program_indexes: &HashMap<String, usize>,
-    shader_programs: &Vec<GLuint>,
-    variable_locations: &mut Vec<HashMap<String, GLint>>,
-) {
+pub fn get_variable_locations_2(gl_data: &mut GlData) {
     let variables = [
         ("UBO Use shader 1", vec!["model_mat"]),
         ("UBO Use shader 2", vec!["model_mat"]),
@@ -20,6 +15,19 @@ pub fn get_variable_locations_2(
             "Custom Anti-aliasing shader",
             vec!["model_mat", "view_mat", "projection_mat"],
         ),
+        (
+            "Advanced Lighting shader",
+            vec![
+                "model_mat",
+                "Shininess",
+                "Viewer_Position",
+                "Blinn_Phong_Lighting",
+                "Light_Sources_Num",
+                "Light_Sources[0].position",
+                "Light_Sources[0].color",
+            ],
+        ),
+        ("Single Color shader", vec!["model_mat", "color"]),
     ];
     let variables = variables
         .iter()
@@ -31,16 +39,13 @@ pub fn get_variable_locations_2(
             (shd_name.to_string(), var_names)
         })
         .collect::<Vec<(String, Vec<String>)>>();
-    for _ in 0..variables.len() {
-        variable_locations.push(HashMap::new());
-    }
     for (shd_name, var_names) in variables {
-        let shd_index = shader_program_indexes.get(&shd_name).unwrap();
+        let shd_index = gl_data.get_shader_program_index(&shd_name);
         for mut var_name in var_names {
             var_name += "\0";
             let var_location = unsafe {
                 gl::GetUniformLocation(
-                    shader_programs[*shd_index],
+                    gl_data.shader_programs[shd_index],
                     var_name.as_ptr() as *const i8, /* Rustfmt force vertical formatting */
                 )
             };
@@ -49,13 +54,13 @@ pub fn get_variable_locations_2(
                 "(\"{2:}\") \"{}\" variable location: {}",
                 var_name, var_location, shd_name
             );
-            variable_locations[*shd_index].insert(var_name, var_location);
+            gl_data.add_var_loc(shd_index, &var_name, var_location);
         }
     }
 }
 
 #[deprecated]
-pub fn get_variable_locations(shader_programs: &Vec<GLuint>) -> Vec<HashMap<String, GLint>> {
+pub fn get_variable_locations(gl_data: &mut GlData) {
     let variables = [
         ("in_color", 1),
         ("offset", 0),
@@ -132,22 +137,18 @@ pub fn get_variable_locations(shader_programs: &Vec<GLuint>) -> Vec<HashMap<Stri
         let pos_name = format!("point_lights[{}].position", i);
         variables.push((pos_name, 4));
     }
-    let mut result = Vec::new();
-    for _ in 0..shader_programs.len() {
-        result.push(HashMap::new())
-    }
     println!();
     for (mut name, shader_program_index) in variables {
         name += "\0";
         let var_location = unsafe {
             gl::GetUniformLocation(
-                shader_programs[shader_program_index],
+                gl_data.shader_programs[shader_program_index],
                 name.as_ptr() as *const i8,
             )
         };
         name.remove(name.len() - 1);
         println!("\"{}\" variable location: {}", name, var_location);
-        result[shader_program_index].insert(name, var_location);
+        gl_data.add_var_loc(shader_program_index, &name, var_location);
     }
-    result
+    println!();
 }

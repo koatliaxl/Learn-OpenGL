@@ -1,10 +1,8 @@
-use crate::camera::Camera;
 use crate::gl;
-use crate::gl::types::{GLfloat, GLint, GLuint};
+use crate::gl::types::{GLint, GLuint};
 use crate::init::*;
 use mat_vec::{Matrix4x4, Vector3, Vector4};
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
 
 pub struct GlData {
     pub shader_programs: Vec<GLuint>,
@@ -30,22 +28,14 @@ pub struct GlData {
 impl GlData {
     #[allow(deprecated)]
     pub fn new() -> GlData {
-        let (shd_program_ids, shd_program_indexes) = init_shader_programs();
         let (vertex_array_objects, array_buffers) = init_vertex_array_objects();
-        let (textures, tex_indexes) = init_textures(&shd_program_ids);
-        let mut var_locations = get_variable_locations(&shd_program_ids);
-        get_variable_locations_2(
-            &shd_program_indexes,
-            &shd_program_ids,
-            &mut var_locations, /* Rustfmt force vertical formatting */
-        );
         GlData {
-            shader_programs: shd_program_ids,
-            shader_program_indexes: shd_program_indexes,
+            shader_programs: Vec::new(),
+            shader_program_indexes: HashMap::new(),
             vertex_array_objects,
-            textures,
-            textures_indexes: tex_indexes,
-            var_locations,
+            textures: Vec::new(),
+            textures_indexes: HashMap::new(),
+            var_locations: Vec::new(),
             array_buffers,
             array_buffer_indexes: HashMap::new(),
             framebuffers: Vec::new(),
@@ -58,12 +48,26 @@ impl GlData {
         }
     }
 
+    pub fn add_var_loc(&mut self, shr_prg_idx: usize, var_name: &str, var_location: GLint) {
+        self.var_locations[shr_prg_idx].insert(var_name.to_string(), var_location);
+    }
+
     pub fn get_var_loc(&self, name: &str, shader_program_index: usize) -> GLint {
         if let Some(loc) = self.var_locations[shader_program_index].get(name) {
             *loc
         } else {
-            0
+            panic!(
+                "There is no variable location \"{}\" for shader program in the index {}",
+                name, shader_program_index
+            )
         }
+    }
+
+    pub fn add_shader_program(&mut self, gl_id: GLuint, key: &str) {
+        self.shader_programs.push(gl_id);
+        self.shader_program_indexes
+            .insert(key.to_string(), self.shader_programs.len() - 1);
+        self.var_locations.push(HashMap::new());
     }
 
     pub fn get_shader_program_gl_id(&self, key: &str) -> GLuint {
@@ -84,6 +88,12 @@ impl GlData {
 
     pub unsafe fn use_shader_program(&self, key: &str) {
         gl::UseProgram(self.get_shader_program_gl_id(key));
+    }
+
+    pub fn add_texture(&mut self, gl_id: GLuint, key: &str) {
+        self.textures.push(gl_id);
+        self.textures_indexes
+            .insert(key.to_string(), self.textures.len() - 1);
     }
 
     pub fn get_texture_gl_id(&self, key: &str) -> GLuint {
@@ -269,49 +279,5 @@ impl GlData {
         );
         self.uniform_buffers.clear();
         self.uniform_buffers_indexes.clear();
-    }
-}
-
-pub struct State {
-    pub zoom: GLfloat,
-    pub mix: GLfloat,
-    pub time_since_last_press: Instant,
-    pub field_of_view: f32,
-    pub aspect_ratio: f32,
-    pub camera: Camera,
-    pub last_cursor_pos: (f64, f64),
-    /*pub ambient_light_strength: f32,
-    pub diffuse_light_strength: f32,
-    pub specular_light_strength: f32,
-    pub shininess: f32,*/
-}
-
-impl State {
-    pub fn new(window_size: (i32, i32)) -> State {
-        State {
-            zoom: 1.0,
-            mix: 0.0,
-            time_since_last_press: Instant::now(),
-            field_of_view: 60.0,
-            aspect_ratio: 1.0,
-            camera: Camera::new(),
-            last_cursor_pos: (window_size.0 as f64 / 2.0, window_size.1 as f64 / 2.0),
-            /*ambient_light_strength: 0.1,
-            diffuse_light_strength: 1.0,
-            specular_light_strength: 0.5,
-            shininess: 32.0,*/
-        }
-    }
-}
-
-pub struct Config {
-    pub repeat_delay: Duration,
-}
-
-impl Config {
-    pub fn new() -> Config {
-        Config {
-            repeat_delay: Duration::from_millis(30),
-        }
     }
 }

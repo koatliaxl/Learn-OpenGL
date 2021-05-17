@@ -26,6 +26,11 @@ fn main() {
     let mut state = State::new(window.get_size());
     let cfg = Config::new();
     let mut gfx = GlData::new();
+    init_shader_programs(&mut gfx);
+    init_textures(&mut gfx);
+    #[allow(deprecated)]
+    get_variable_locations(&mut gfx);
+    get_variable_locations_2(&mut gfx);
     let mut model = Model::new();
     init_draw(&mut gfx, &mut model, &window, &mut state);
 

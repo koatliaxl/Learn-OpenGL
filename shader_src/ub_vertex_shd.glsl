@@ -7,7 +7,8 @@ layout (location=3) in vec3 in_Color;
 
 out vec3 Color;
 out vec2 Tex_Coords;
-//out vec3 Normal;
+out vec3 Normal;
+out vec3 World_Pos;
 
 uniform mat4 model_mat;
 layout (std140) uniform Matrices {
@@ -19,8 +20,9 @@ void main() {
     vec4 world_pos = model_mat * vec4(in_Position, 1.0);
     gl_Position = projection * view * world_pos;
 
-    /*mat3 normal_matrix = mat3(transpose(inverse(model_mat)));
-    Normal = normalize(normal_matrix * in_Normal);*/
+    mat3 normal_matrix = mat3(transpose(inverse(model_mat)));
+    Normal = normalize(normal_matrix * in_Normal);
     Tex_Coords = in_Tex_Coords;
     Color = in_Color;
+    World_Pos = world_pos.xyz;
 }

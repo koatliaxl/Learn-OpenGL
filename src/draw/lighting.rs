@@ -140,7 +140,7 @@ static BIOCHEMICAL_LAB: LightingSceneAtmosphere =
 
 pub unsafe fn init_lighting_scene(gfx: &GlData) {
     gl::UseProgram(gfx.shader_programs[2]);
-    gfx.set_uniform_3f("material.specular", 2, 0.5, 0.5, 0.5);
+    //gfx.set_uniform_3f("material.specular", 2, 0.5, 0.5, 0.5);
     gfx.set_uniform_1f("material.shininess", 2, 64.0);
     gfx.set_uniform_3f("default_light.ambient", 2, 0.2, 0.2, 0.2);
     gfx.set_uniform_3f("default_light.diffuse", 2, 0.5, 0.5, 0.5);

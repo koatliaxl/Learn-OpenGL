@@ -57,6 +57,13 @@ pub fn process_input(
                         | Key::Num8 => {
                             change_lighting_strength(state, key);
                         }*/
+                        Key::B => {
+                            state.blinn_phong_lighting = !state.blinn_phong_lighting;
+                            match state.blinn_phong_lighting {
+                                true => println!("Blinn-Phong lighting"),
+                                false => println!("Phong lighting"),
+                            }
+                        }
                         _ => {}
                     }
                 }

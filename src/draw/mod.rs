@@ -1,4 +1,5 @@
 mod adv_data_use;
+mod adv_lighting;
 mod antialiasing;
 mod backpack;
 mod blending;
@@ -15,9 +16,9 @@ mod ubo_use;
 
 use self::cubes::draw_cubes;
 use self::{
-    adv_data_use::*, antialiasing::*, backpack::*, blending::*, cubemap::*, depth_texting::*,
-    face_culling::*, framebuffers::*, geometry_shader_use::*, instancing::*, lighting::*,
-    stencil_testing::*, ubo_use::*,
+    adv_data_use::*, adv_lighting::*, antialiasing::*, backpack::*, blending::*, cubemap::*,
+    depth_texting::*, face_culling::*, framebuffers::*, geometry_shader_use::*, instancing::*,
+    lighting::*, stencil_testing::*, ubo_use::*,
 };
 use crate::gl;
 use crate::state_and_cfg::{GlData, State};
@@ -27,7 +28,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = AntiAliasing { samples: 8 };
+static DRAW: Draw = AdvancedLighting;
 
 #[allow(unused)]
 enum Draw {
@@ -45,6 +46,7 @@ enum Draw {
     GeometryShaderUse(GeomShdUseOpt),
     Instancing(InstancingOption),
     AntiAliasing { samples: u32 },
+    AdvancedLighting,
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -131,6 +133,9 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             GeometryShaderUse(opt) => draw_geometry_shd_use(gfx, model, time, opt),
             Instancing(_) => instancing_draw(gfx),
             AntiAliasing { .. } => draw_antialiasing(gfx),
+            AdvancedLighting => {
+                draw_adv_lighting(gfx, state.camera.position, state.blinn_phong_lighting)
+            }
             _ => {}
         }
     }
@@ -163,6 +168,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
                 samples,
                 AntiAliasingMode::DirectOutput,
             ),
+            AdvancedLighting => setup_adv_lighting(gfx),
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}
@@ -189,6 +195,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         gfx.add_uniform_buffer(ubo_matrices, "Matrices");
         // Next not really needed because the "Matrices" binds to 0,
         // and uniform blocks of the shaders have this value initially.
+        // But for convenience and in case...
         bind_uniform_block(
             "Matrices",
             "UB Default shader",
@@ -204,6 +211,18 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         bind_uniform_block(
             "Matrices",
             "UBO Use shader 2",
+            0,
+            gfx, /* Rustfmt force vertical formatting */
+        );
+        bind_uniform_block(
+            "Matrices",
+            "Advanced Lighting shader",
+            0,
+            gfx, /* Rustfmt force vertical formatting */
+        );
+        bind_uniform_block(
+            "Matrices",
+            "Single Color shader",
             0,
             gfx, /* Rustfmt force vertical formatting */
         );
@@ -230,11 +249,10 @@ unsafe fn bind_uniform_block(
 }
 
 unsafe fn draw_floor(gfx: &GlData, shader_program_idx: usize) {
-    let mut model_mat = Matrix4x4::new_scaling(10.0, 10.0, 0.0);
-    model_mat = Matrix4x4::new_x_rotation(90.0) * model_mat;
-    model_mat = Matrix4x4::new_translation(0.0, -0.5, 0.0) * model_mat;
+    let mut model_mat = Matrix4x4::new_scaling(10.0, 1.0, 10.0);
+    model_mat = Matrix4x4::new_translation(0.0, -1.0, 0.0) * model_mat;
     gfx.set_uniform_mat4x4("model_mat", shader_program_idx, &model_mat);
-    gl::DrawArrays(gl::TRIANGLES, 0, 6);
+    gl::DrawArrays(gl::TRIANGLES, 12, 6);
 }
 
 unsafe fn draw_two_containers(gfx: &GlData, shader_program_idx: usize, scale: f32) {
