@@ -9,6 +9,7 @@ uniform sampler2D Diffuse_Texture;
 uniform float Shininess;
 uniform vec3 Viewer_Position;
 uniform bool Blinn_Phong_Lighting = true;
+uniform bool Gamma_Correction = false;
 
 struct LightSource {
     vec3 position;
@@ -16,14 +17,26 @@ struct LightSource {
 };
 uniform LightSource[10] Light_Sources;
 uniform int Light_Sources_Num = 0;
-uniform LightSource light_source_1 = LightSource (vec3(0.0), vec3(0.0));
+
+uniform float attenuation_constant_term = 1.0;
+uniform float attenuation_linear_term = 0.0;
+uniform float attenuation_quadratic_term = 0.0;
+
+uniform float ambient_strength = 0.05;
+uniform float specular_coef = 0.3;
+
+const float gamma = 2.2;
 
 vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir);
 
 void main() {
     vec3 viewer_dir = normalize(Viewer_Position - World_Pos);
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < Light_Sources_Num; i++) {
         Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir);
+    }
+    // Gamma Correction:
+    if (Gamma_Correction) {
+        Frag_Color.rgb = pow(Frag_Color.rgb, vec3(1.0 / gamma));
     }
 }
 
@@ -32,9 +45,6 @@ vec4 diffuse_lighting(vec3 light, vec3 light_dir, vec3 normal);
 vec4 specular_lighting(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir);
 vec4 blinn_phong_specular(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir);
 float attenuation(vec3 source_pos);
-
-float ambient_strength = 0.05;
-float specular_coef = 0.3;
 
 vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir) {
     vec4 result = vec4(0.0);
@@ -70,10 +80,6 @@ vec4 blinn_phong_specular(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_d
     float specular_impact = pow(max(dot(normal, halfway_vec), 0.0), Shininess);
     return vec4(light, 1.0) * specular_impact/* * vec4(texture(specular_map, Tex_Coords))*/;
 }
-
-float attenuation_constant_term = 1.0;
-float attenuation_linear_term = 0.0;
-float attenuation_quadratic_term = 0.0;
 
 float attenuation(vec3 source_pos) {
     float distance = length(source_pos - World_Pos);

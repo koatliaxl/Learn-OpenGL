@@ -1,6 +1,7 @@
 mod gl_data;
 pub use gl_data::*;
 
+use super::{Attenuation, GammaCorrection};
 use crate::camera::Camera;
 use opengl_learn::gl::types::GLfloat;
 use std::time::{Duration, Instant};
@@ -15,9 +16,12 @@ pub struct State {
     pub last_cursor_pos: (f64, f64),
     /*pub ambient_light_strength: f32,
     pub diffuse_light_strength: f32,
-    pub specular_light_strength: f32,
-    pub shininess: f32,*/
+    pub specular_light_strength: f32,*/
+    pub shininess: f32,
     pub blinn_phong_lighting: bool,
+    pub gamma_correction: GammaCorrection,
+    pub srgb_texture: bool,
+    pub attenuation: Attenuation,
 }
 
 impl State {
@@ -32,9 +36,16 @@ impl State {
             last_cursor_pos: (window_size.0 as f64 / 2.0, window_size.1 as f64 / 2.0),
             /*ambient_light_strength: 0.1,
             diffuse_light_strength: 1.0,
-            specular_light_strength: 0.5,
-            shininess: 32.0,*/
+            specular_light_strength: 0.5,*/
+            shininess: 32.0,
             blinn_phong_lighting: true,
+            gamma_correction: GammaCorrection::Disabled,
+            srgb_texture: false,
+            attenuation: Attenuation {
+                constant_term: 1.0,
+                linear_term: 0.0,
+                quadratic_term: 0.0,
+            },
         }
     }
 }

@@ -14,6 +14,8 @@ mod lighting;
 mod stencil_testing;
 mod ubo_use;
 
+pub use adv_lighting::{Attenuation, GammaCorrection};
+
 use self::cubes::draw_cubes;
 use self::{
     adv_data_use::*, adv_lighting::*, antialiasing::*, backpack::*, blending::*, cubemap::*,
@@ -28,7 +30,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = AdvancedLighting;
+static DRAW: Draw = GammaCorrection;
 
 #[allow(unused)]
 enum Draw {
@@ -45,8 +47,10 @@ enum Draw {
     UniformBufferObjectsUse,
     GeometryShaderUse(GeomShdUseOpt),
     Instancing(InstancingOption),
-    AntiAliasing { samples: u32 },
-    AdvancedLighting,
+    AntiAliasing, /*{ samples: u32 }*/
+
+    BlinnPhongLighting,
+    GammaCorrection,
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -132,10 +136,11 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
             UniformBufferObjectsUse => draw_ubo_use(gfx),
             GeometryShaderUse(opt) => draw_geometry_shd_use(gfx, model, time, opt),
             Instancing(_) => instancing_draw(gfx),
-            AntiAliasing { .. } => draw_antialiasing(gfx),
-            AdvancedLighting => {
-                draw_adv_lighting(gfx, state.camera.position, state.blinn_phong_lighting)
+            AntiAliasing => draw_antialiasing(gfx),
+            BlinnPhongLighting => {
+                draw_blinn_phong_lighting(gfx, state.camera.position, state.blinn_phong_lighting)
             }
+            GammaCorrection => draw_gamma_correction(gfx, state),
             _ => {}
         }
     }
@@ -162,13 +167,11 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             UniformBufferObjectsUse => setup_ubo_use(gfx),
             GeometryShaderUse(opt) => setup_geometry_shd_use(gfx, model, opt),
             Instancing(opt) => setup_instancing(gfx, opt, state),
-            AntiAliasing { samples } => setup_antialiasing(
-                gfx,
-                window.get_size(),
-                samples,
-                AntiAliasingMode::DirectOutput,
-            ),
-            AdvancedLighting => setup_adv_lighting(gfx),
+            AntiAliasing => {
+                setup_antialiasing(gfx, window.get_size(), 8, AntiAliasingMode::DirectOutput)
+            }
+            BlinnPhongLighting => setup_blinn_phong_lighting(gfx),
+            GammaCorrection => setup_gamma_correction(gfx, state),
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}
@@ -193,6 +196,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         // alternative to BindBufferRange()
         //gl::BindBufferBase(gl::UNIFORM_BUFFER, 0, ubo_matrices);
         gfx.add_uniform_buffer(ubo_matrices, "Matrices");
+
         // Next not really needed because the "Matrices" binds to 0,
         // and uniform blocks of the shaders have this value initially.
         // But for convenience and in case...

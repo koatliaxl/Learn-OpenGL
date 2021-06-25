@@ -2,7 +2,7 @@ use crate::gl;
 use crate::state_and_cfg::GlData;
 use mat_vec::{Matrix4x4, Vector3};
 
-pub unsafe fn draw_adv_lighting(
+pub unsafe fn draw_blinn_phong_lighting(
     gfx: &GlData,
     camera_pos: Vector3<f32>,
     blinn_phong_lighting: bool,
@@ -22,7 +22,7 @@ pub unsafe fn draw_adv_lighting(
     gl::DrawArrays(gl::TRIANGLES, 0, 36);
 }
 
-pub unsafe fn setup_adv_lighting(gfx: &GlData) {
+pub unsafe fn setup_blinn_phong_lighting(gfx: &GlData) {
     let tex_id = gfx.get_texture_gl_id("Wood Flooring");
     gl::ActiveTexture(gl::TEXTURE0);
     gl::BindTexture(gl::TEXTURE_2D, tex_id);
@@ -38,7 +38,6 @@ pub unsafe fn setup_adv_lighting(gfx: &GlData) {
     gfx.set_uniform_1i("Light_Sources_Num", shd_idx, 1);
     gfx.set_uniform_vec3f("Light_Sources[0].position", shd_idx, ls_pos);
     gfx.set_uniform_vec3f("Light_Sources[0].color", shd_idx, ls_color);
-    gfx.set_uniform_1f("Shininess", shd_idx, 8.0);
 
     let shd_idx = gfx.get_shader_program_index("Single Color shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);

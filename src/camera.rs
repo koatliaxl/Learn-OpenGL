@@ -29,7 +29,7 @@ impl Camera {
             world_up_direction,
             yaw: -90.0,
             pitch: 0.0,
-            speed: 2.5,
+            speed: 100.0,
         }
     }
 

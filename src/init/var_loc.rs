@@ -23,13 +23,17 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "Viewer_Position",
                 "Blinn_Phong_Lighting",
                 "Light_Sources_Num",
-                "Light_Sources[0].position",
-                "Light_Sources[0].color",
+                "attenuation_constant_term",
+                "attenuation_linear_term",
+                "attenuation_quadratic_term",
+                "Gamma_Correction",
+                "ambient_strength",
+                "specular_coef",
             ],
         ),
         ("Single Color shader", vec!["model_mat", "color"]),
     ];
-    let variables = variables
+    let mut variables = variables
         .iter()
         .map(|(shd_name, var_names)| {
             let var_names = var_names
@@ -39,6 +43,19 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
             (shd_name.to_string(), var_names)
         })
         .collect::<Vec<(String, Vec<String>)>>();
+
+    for (shd_name, vars) in &mut variables {
+        match shd_name.as_str() {
+            "Advanced Lighting shader" => {
+                for i in 0..10 {
+                    vars.push(format!("Light_Sources[{}].position", i));
+                    vars.push(format!("Light_Sources[{}].color", i));
+                }
+            }
+            _ => {}
+        }
+    }
+
     for (shd_name, var_names) in variables {
         let shd_index = gl_data.get_shader_program_index(&shd_name);
         for mut var_name in var_names {
