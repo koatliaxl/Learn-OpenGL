@@ -45,7 +45,7 @@ fn main() {
         window.swap_buffers();
         glfw.poll_events();
         process_input(&mut window, &events, &mut state, &cfg, delta_time);
-        draw(&gfx, &mut state, time as f32, &mut model);
+        draw(&gfx, &mut state, time as f32, &mut model, &window);
     }
     unsafe {
         gfx.free_gl_resources();

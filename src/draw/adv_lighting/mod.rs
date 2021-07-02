@@ -1,8 +1,10 @@
 mod blinn_phong;
 mod gamma_correction;
+mod shadow_mapping;
 
 pub use blinn_phong::*;
 pub use gamma_correction::*;
+pub use shadow_mapping::*;
 
 #[derive(Copy, Clone)]
 pub struct Attenuation {

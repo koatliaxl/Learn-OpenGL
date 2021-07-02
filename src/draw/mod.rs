@@ -56,7 +56,7 @@ enum Draw {
     TextureMinFilterTest,
 }
 
-pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model) {
+pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model, window: &Window) {
     unsafe {
         state.camera.recalculate_look_at_matrix();
         let view_mat = state.camera.look_at_matrix.clone();

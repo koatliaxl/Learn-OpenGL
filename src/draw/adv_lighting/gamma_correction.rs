@@ -20,12 +20,13 @@ pub unsafe fn draw_gamma_correction(gfx: &GlData, state: &State) {
     gfx.set_uniform_vec3f("Viewer_Position", shd_idx, state.camera.position);
     match state.gamma_correction {
         Disabled => {
-            //gl::Disable(gl::FRAMEBUFFER_SRGB); //todo: explanation why is commented
+            //gl::Disable(gl::FRAMEBUFFER_SRGB); // no needed, because toggles in a specific order
             gfx.set_uniform_1u("Gamma_Correction", shd_idx, 0);
         }
         BuiltinOpenGL => {
             gl::Enable(gl::FRAMEBUFFER_SRGB);
-            //gfx.set_uniform_1u("Gamma_Correction", shd_idx, 0); //todo: explanation why is commented
+            //gfx.set_uniform_1u("Gamma_Correction", shd_idx, 0);
+            // no needed, because toggles in a specific order
         }
         InShader => {
             gl::Disable(gl::FRAMEBUFFER_SRGB);
@@ -72,6 +73,7 @@ pub unsafe fn draw_gamma_correction(gfx: &GlData, state: &State) {
 pub unsafe fn setup_gamma_correction(gfx: &mut GlData, state: &mut State) {
     gl::ActiveTexture(gl::TEXTURE0);
     gl::BindVertexArray(gfx.vertex_array_objects[2]);
+    state.shininess = 64.0;
 
     use crate::gl::{LINEAR, LINEAR_MIPMAP_LINEAR, REPEAT};
     use crate::load_tex::load_as_srgb;
@@ -105,6 +107,4 @@ pub unsafe fn setup_gamma_correction(gfx: &mut GlData, state: &mut State) {
     }
     gfx.set_uniform_1f("ambient_strength", shd_idx, 0.0);
     //gfx.set_uniform_1f("specular_coef", shd_idx, 1.0);
-
-    state.shininess = 64.0;
 }
