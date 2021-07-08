@@ -1,3 +1,20 @@
+pub const DEPTH_EMPTY_FRAG_SHADER: &str = "
+    #version 330 core
+    void main() {
+        gl_FragDepth = gl_FragCoord.z;
+    }
+";
+
+pub const SIMPLE_DEPTH_VERTEX_SHADER: &str = "
+    #version 330 core
+    layout (location = 0) in vec3 in_Position;
+    uniform mat4 model_mat;
+    uniform mat4 light_space_mat;
+    void main() {
+        gl_Position = light_space_mat * model_mat * vec4(in_Position, 1.0);
+    }
+";
+
 pub const SINGLE_COLOR_ALPHA_FRAG_SHADER_SRC: &str = "
     #version 330 core
     out vec4 Frag_Color;

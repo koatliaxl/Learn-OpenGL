@@ -91,7 +91,7 @@ pub unsafe fn setup_gamma_correction(gfx: &mut GlData, state: &mut State) {
     LIGHT_POSITIONS.push(Vector3::new(2.0, 1.0, 0.0));
     LIGHT_POSITIONS.push(Vector3::new(6.0, 1.0, 0.0));
     for i in 0..LIGHT_SOURCES_NUM {
-        LIGHT_COLOR.push(Vector3::new(0.25, 0.25, 0.25) * (i + 1) as f32);
+        LIGHT_COLOR.push(Vector3::new(0.25, 0.25, 0.25_f32) * (i + 1) as u32);
     }
 
     let shd_idx = gfx.get_shader_program_index("Advanced Lighting shader");

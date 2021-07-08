@@ -41,12 +41,13 @@ impl Camera {
         );
     }
 
-    fn calculate_look_at_matrix(
+    // todo? move to mat_vec lib
+    pub fn calculate_look_at_matrix(
         camera_position: Vector3<f32>,
         camera_direction: Vector3<f32>,
         world_up_direction: Vector3<f32>,
     ) -> Matrix4x4<f32> {
-        let camera_target_direction = !(camera_position - camera_direction);
+        let camera_target_direction = !(camera_position - camera_direction); // todo?! simplify to just norm(cam_dir)
         let camera_right = !(world_up_direction ^ camera_target_direction);
         let camera_up = camera_target_direction ^ camera_right;
         let (rx, ry, rz) = camera_right.get_components();

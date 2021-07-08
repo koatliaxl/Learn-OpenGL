@@ -141,6 +141,21 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
             FRAGMENT_SHADER,
             "Advanced Lighting fragment shader",
         );
+        let simple_depth_shd = gen_shader(
+            SIMPLE_DEPTH_VERTEX_SHADER,
+            VERTEX_SHADER,
+            "Simple Depth vertex shader",
+        );
+        let depth_empty_shd = gen_shader(
+            DEPTH_EMPTY_FRAG_SHADER,
+            FRAGMENT_SHADER,
+            "Depth empty fragment shader",
+        );
+        let depth_visualization_frag = gen_shader_from_file(
+            "shader_src/depth_visualization_frag.glsl",
+            FRAGMENT_SHADER,
+            "Depth Visualization fragment shader",
+        );
 
         let shader_programs = [
             (vertex_shader_id, fragment_shader_id, "Shader 1"),
@@ -194,6 +209,12 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
                 ub_vertex_shd,
                 single_color_frag_shd_id,
                 "Single Color shader",
+            ),
+            (simple_depth_shd, depth_empty_shd, "Depth/Shadow Map shader"),
+            (
+                model_vertex_shd_id,
+                depth_visualization_frag,
+                "Depth Visualization shader",
             ),
         ];
         println!();
@@ -269,5 +290,8 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
         gl::DeleteShader(instancing_vertex_shd);
         gl::DeleteShader(custom_anti_alias_frag);
         gl::DeleteShader(adv_lighting_frag);
+        gl::DeleteShader(simple_depth_shd);
+        gl::DeleteShader(depth_empty_shd);
+        gl::DeleteShader(depth_visualization_frag);
     }
 }

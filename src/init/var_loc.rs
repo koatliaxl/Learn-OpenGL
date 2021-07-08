@@ -29,9 +29,18 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "Gamma_Correction",
                 "ambient_strength",
                 "specular_coef",
+                "Directional_Light_Num",
             ],
         ),
         ("Single Color shader", vec!["model_mat", "color"]),
+        (
+            "Depth/Shadow Map shader",
+            vec!["model_mat", "light_space_mat"],
+        ),
+        (
+            "Depth Visualization shader",
+            vec!["model_mat", "view_mat", "projection_mat"],
+        ),
     ];
     let mut variables = variables
         .iter()

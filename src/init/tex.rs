@@ -119,6 +119,14 @@ pub fn init_textures(gl_data: &mut GlData) {
                    LINEAR_MIPMAP_LINEAR,
                    LINEAR,
                ),*/
+            (
+                "assets/wood.png",
+                "Wood Flooring (clamp to edge)",
+                CLAMP_TO_EDGE,
+                CLAMP_TO_EDGE,
+                LINEAR_MIPMAP_LINEAR,
+                LINEAR,
+            ),
         ];
         for (path, name, wrap_s, wrap_t, min_filter, mag_filter) in &textures_to_load {
             let tex_gl_id = load_texture(path, *wrap_s, *wrap_t, *min_filter, *mag_filter);
