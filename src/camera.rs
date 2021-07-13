@@ -36,22 +36,23 @@ impl Camera {
     pub fn recalculate_look_at_matrix(&mut self) {
         self.look_at_matrix = Camera::calculate_look_at_matrix(
             self.position,
-            self.direction + self.position,
+            self.direction,
             self.world_up_direction,
         );
     }
 
-    fn calculate_look_at_matrix(
+    // todo? move to mat_vec lib
+    pub fn calculate_look_at_matrix(
         camera_position: Vector3<f32>,
         camera_direction: Vector3<f32>,
         world_up_direction: Vector3<f32>,
     ) -> Matrix4x4<f32> {
-        let camera_target_direction = !(camera_position - camera_direction);
-        let camera_right = !(world_up_direction ^ camera_target_direction);
-        let camera_up = camera_target_direction ^ camera_right;
+        let camera_inv_dir = -camera_direction;
+        let camera_right = !(world_up_direction ^ camera_inv_dir);
+        let camera_up = camera_inv_dir ^ camera_right;
         let (rx, ry, rz) = camera_right.get_components();
         let (ux, uy, uz) = camera_up.get_components();
-        let (dx, dy, dz) = camera_target_direction.get_components();
+        let (dx, dy, dz) = camera_inv_dir.get_components();
         let rotation = Matrix4x4::from_array([
             [rx, ry, rz, 0.0],
             [ux, uy, uz, 0.0],
