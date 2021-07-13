@@ -1,7 +1,7 @@
 pub const DEPTH_EMPTY_FRAG_SHADER: &str = "
     #version 330 core
     void main() {
-        gl_FragDepth = gl_FragCoord.z;
+        //gl_FragDepth = gl_FragCoord.z; // This is effectively what happens behind the scene anyways
     }
 ";
 

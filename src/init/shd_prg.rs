@@ -156,6 +156,16 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
             FRAGMENT_SHADER,
             "Depth Visualization fragment shader",
         );
+        let shadow_mapping_vrtx = gen_shader_from_file(
+            "shader_src/shadow_mapping_vrtx.glsl",
+            VERTEX_SHADER,
+            "Shadow Mapping vertex shader",
+        );
+        let shadow_mapping_frag = gen_shader_from_file(
+            "shader_src/shadow_mapping_frag.glsl",
+            FRAGMENT_SHADER,
+            "Shadow Mapping fragment shader",
+        );
 
         let shader_programs = [
             (vertex_shader_id, fragment_shader_id, "Shader 1"),
@@ -215,6 +225,11 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
                 model_vertex_shd_id,
                 depth_visualization_frag,
                 "Depth Visualization shader",
+            ),
+            (
+                shadow_mapping_vrtx,
+                shadow_mapping_frag,
+                "Shadow Mapping shader",
             ),
         ];
         println!();
@@ -293,5 +308,7 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
         gl::DeleteShader(simple_depth_shd);
         gl::DeleteShader(depth_empty_shd);
         gl::DeleteShader(depth_visualization_frag);
+        gl::DeleteShader(shadow_mapping_vrtx);
+        gl::DeleteShader(shadow_mapping_frag);
     }
 }
