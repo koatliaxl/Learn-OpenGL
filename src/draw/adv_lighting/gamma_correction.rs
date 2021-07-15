@@ -62,7 +62,7 @@ pub unsafe fn draw_gamma_correction(gfx: &GlData, state: &State) {
     gl::UseProgram(gfx.shader_programs[shd_idx]);
     for i in 0..LIGHT_SOURCES_NUM {
         let (x, y, z) = LIGHT_POSITIONS[i].get_components();
-        let scaling = Matrix4x4::new_scaling(0.1, 0.1, 0.1);
+        let scaling = Matrix4x4::new_uniform_scaling(0.1);
         let model_mat = Matrix4x4::new_translation(x, y, z) * scaling;
         gfx.set_uniform_mat4x4("model_mat", shd_idx, &model_mat);
         gfx.set_uniform_vec3f("color", shd_idx, LIGHT_COLOR[i]);
@@ -75,23 +75,12 @@ pub unsafe fn setup_gamma_correction(gfx: &mut GlData, state: &mut State) {
     gl::BindVertexArray(gfx.vertex_array_objects[2]);
     state.shininess = 64.0;
 
-    use crate::gl::{LINEAR, LINEAR_MIPMAP_LINEAR, REPEAT};
-    use crate::load_tex::load_as_srgb;
-    let srgb_texture = load_as_srgb(
-        "assets/wood.png",
-        REPEAT,
-        REPEAT,
-        LINEAR_MIPMAP_LINEAR,
-        LINEAR,
-    );
-    gfx.add_texture(srgb_texture, "Wood Flooring sRGB");
-
     LIGHT_POSITIONS.push(Vector3::new(-6.0, 1.0, 0.0));
     LIGHT_POSITIONS.push(Vector3::new(-2.0, 1.0, 0.0));
     LIGHT_POSITIONS.push(Vector3::new(2.0, 1.0, 0.0));
     LIGHT_POSITIONS.push(Vector3::new(6.0, 1.0, 0.0));
     for i in 0..LIGHT_SOURCES_NUM {
-        LIGHT_COLOR.push(Vector3::<f32>::new(0.25, 0.25, 0.25) * (i + 1) as u32);
+        LIGHT_COLOR.push(Vector3::<f32>::new(0.25, 0.25, 0.25) * (i + 1));
     }
 
     let shd_idx = gfx.get_shader_program_index("Advanced Lighting shader");

@@ -1,5 +1,6 @@
 mod camera;
 mod lighting;
+mod shadows;
 mod textures;
 mod view;
 
@@ -7,6 +8,7 @@ use crate::state_and_cfg::{Config, State};
 use camera::*;
 use glfw::{Action, CursorMode, Key, Window, WindowEvent};
 use lighting::*;
+use shadows::*;
 use std::sync::mpsc::Receiver;
 use textures::*;
 use view::*;
@@ -83,6 +85,9 @@ pub fn process_input(
                                 true => println!("Using sRGB(a) texture"),
                                 false => println!("Using non-sRGB(a) texture"),
                             }
+                        }
+                        Key::Comma | Key::Period | Key::N | Key::M | Key::L => {
+                            change_shadow_mapping_settings(state, key);
                         }
                         _ => {}
                     }

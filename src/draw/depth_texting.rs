@@ -28,7 +28,7 @@ pub unsafe fn draw_depth_testing_scene(
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[7]);
     draw_two_containers(gfx, 5, 1.0);
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 5);
+    draw_floor(gfx, 5, 10.0);
 }
 
 pub unsafe fn setup_depth_testing_scene() {

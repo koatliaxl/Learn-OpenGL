@@ -27,7 +27,7 @@ pub unsafe fn draw_blending_scene(
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[7]);
     draw_two_containers(gfx, 7, 1.0);
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 7);
+    draw_floor(gfx, 7, 10.0);
 
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[8]);
     let mut transparent_windows_positions = POSITIONS

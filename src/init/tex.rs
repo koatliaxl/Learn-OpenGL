@@ -5,7 +5,7 @@ use crate::gl::{
     LINEAR, LINEAR_MIPMAP_LINEAR, LINEAR_MIPMAP_NEAREST, NEAREST, NEAREST_MIPMAP_LINEAR,
     NEAREST_MIPMAP_NEAREST,
 };
-use crate::load_tex::load_texture;
+use crate::load_tex::{load_as_srgb, load_texture};
 use crate::state_and_cfg::GlData;
 
 #[allow(deprecated)]
@@ -119,17 +119,21 @@ pub fn init_textures(gl_data: &mut GlData) {
                    LINEAR_MIPMAP_LINEAR,
                    LINEAR,
                ),*/
-            (
-                "assets/wood.png",
-                "Wood Flooring (clamp to edge)",
-                CLAMP_TO_EDGE,
-                CLAMP_TO_EDGE,
-                LINEAR_MIPMAP_LINEAR,
-                LINEAR,
-            ),
         ];
         for (path, name, wrap_s, wrap_t, min_filter, mag_filter) in &textures_to_load {
             let tex_gl_id = load_texture(path, *wrap_s, *wrap_t, *min_filter, *mag_filter);
+            gl_data.add_texture(tex_gl_id, name);
+        }
+        let srgb_textures = [(
+            "assets/wood.png",
+            "Wood Flooring sRGB",
+            REPEAT,
+            REPEAT,
+            LINEAR_MIPMAP_LINEAR,
+            LINEAR,
+        )];
+        for (path, name, wrap_s, wrap_t, min_filter, mag_filter) in &srgb_textures {
+            let tex_gl_id = load_as_srgb(path, *wrap_s, *wrap_t, *min_filter, *mag_filter);
             gl_data.add_texture(tex_gl_id, name);
         }
     }

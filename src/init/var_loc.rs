@@ -48,6 +48,8 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "Viewer_Position",
                 "Light_Sources_Num",
                 "Shadow_Map",
+                "min_shadow_bias",
+                "max_shadow_bias",
             ],
         ),
     ];

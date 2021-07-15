@@ -10,7 +10,7 @@ uniform sampler2D Diffuse_Texture;
 uniform sampler2D Shadow_Map;
 uniform float Shininess;
 uniform vec3 Viewer_Position;
-uniform bool Gamma_Correction = false;
+//uniform bool Gamma_Correction = false;
 
 struct LightSource {
     vec3 position;
@@ -23,10 +23,13 @@ uniform float attenuation_constant_term = 1.0;
 uniform float attenuation_linear_term = 0.0;
 uniform float attenuation_quadratic_term = 0.0;
 
-uniform float ambient_strength = 0.05;
+uniform float ambient_strength = 0.2;
 uniform float specular_coef = 0.3;
 
-const float gamma = 2.2;
+//const float gamma = 2.2;
+
+uniform float min_shadow_bias = 0.0009;
+uniform float max_shadow_bias = 0.0065;
 
 vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir);
 float calc_shadow_value(vec4 frag_pos_light_space);
@@ -37,20 +40,12 @@ void main() {
         Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir);
     }
     // Gamma Correction:
-    if (Gamma_Correction) {
+    /*if (Gamma_Correction) {
         Frag_Color.rgb = pow(Frag_Color.rgb, vec3(1.0 / gamma));
-    }
+    }*/
 }
 
-//float calc_shadow_value(vec4 frag_pos_light_space);
-
-vec4 ambient_lighting(vec3 light);
-vec4 diffuse_lighting(vec3 light, vec3 light_dir, vec3 normal);
-vec4 specular_lighting(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir);
-vec4 blinn_phong_specular(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir);
-float attenuation(vec3 source_pos);
-
-float calc_shadow_value(vec4 frag_pos_light_space) {
+float calc_shadow_value(vec4 frag_pos_light_space, vec3 light_dir) {
     // perform perspective divide
     vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
     // transform the NDC coordinates to the range [0,1], because this is the range of the depth value
@@ -58,9 +53,17 @@ float calc_shadow_value(vec4 frag_pos_light_space) {
     // closest depth from the light's point of view
     float closest_depth = texture(Shadow_Map, proj_coords.xy).r;
     float fragment_depth = proj_coords.z;
-    float shadow_value = fragment_depth > closest_depth ? 1.0 : 0.0;
-    return shadow_value;
+    if (proj_coords.z > 1.0) return 0.0;
+    // to remove "shadow acne" artifact
+    float shadow_bias = max(max_shadow_bias * (1.0 - dot(Normal, light_dir)), min_shadow_bias);
+    return fragment_depth - shadow_bias > closest_depth ? 1.0 : 0.0;
 }
+
+vec4 ambient_lighting(vec3 light);
+vec4 diffuse_lighting(vec3 light, vec3 light_dir, vec3 normal);
+vec4 specular_lighting(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir);
+vec4 blinn_phong_specular(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir);
+float attenuation(vec3 source_pos);
 
 vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir) {
     vec3 light_dir = normalize(pl.position - World_Pos);
@@ -68,7 +71,7 @@ vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir) {
     vec4 diffuse = diffuse_lighting(pl.color, light_dir, normal);
     vec4 specular = blinn_phong_specular(pl.color, light_dir, normal, viewer_dir) * specular_coef;
 
-    float shadow_value = calc_shadow_value(Light_Space_Pos);
+    float shadow_value = calc_shadow_value(Light_Space_Pos, light_dir);
     vec4 lighting = ambient + (1.0 - shadow_value) * (diffuse + specular);
 
     lighting *= attenuation(pl.position);

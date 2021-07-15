@@ -14,7 +14,7 @@ mod lighting;
 mod stencil_testing;
 mod ubo_use;
 
-pub use adv_lighting::{Attenuation, GammaCorrection};
+pub use adv_lighting::{Attenuation, GammaCorrection, ShadowMappingSettings};
 
 use self::cubes::draw_cubes;
 use self::{
@@ -203,36 +203,12 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         // Next not really needed because the "Matrices" binds to 0,
         // and uniform blocks of the shaders have this value initially.
         // But for convenience and in case...
-        bind_uniform_block(
-            "Matrices",
-            "UB Default shader",
-            0,
-            gfx, /* Rustfmt force vertical formatting */
-        );
-        bind_uniform_block(
-            "Matrices",
-            "Instancing shader",
-            0,
-            gfx, /* Rustfmt force vertical formatting */
-        );
-        bind_uniform_block(
-            "Matrices",
-            "UBO Use shader 2",
-            0,
-            gfx, /* Rustfmt force vertical formatting */
-        );
-        bind_uniform_block(
-            "Matrices",
-            "Advanced Lighting shader",
-            0,
-            gfx, /* Rustfmt force vertical formatting */
-        );
-        bind_uniform_block(
-            "Matrices",
-            "Single Color shader",
-            0,
-            gfx, /* Rustfmt force vertical formatting */
-        );
+        bind_uniform_block("Matrices", "UB Default shader", 0, gfx);
+        bind_uniform_block("Matrices", "Instancing shader", 0, gfx);
+        bind_uniform_block("Matrices", "UBO Use shader 2", 0, gfx);
+        bind_uniform_block("Matrices", "Advanced Lighting shader", 0, gfx);
+        bind_uniform_block("Matrices", "Single Color shader", 0, gfx);
+        bind_uniform_block("Matrices", "Shadow Mapping shader", 0, gfx);
     }
 }
 
@@ -255,8 +231,8 @@ unsafe fn bind_uniform_block(
     );
 }
 
-unsafe fn draw_floor(gfx: &GlData, shader_program_idx: usize) {
-    let mut model_mat = Matrix4x4::new_scaling(10.0, 1.0, 10.0);
+unsafe fn draw_floor(gfx: &GlData, shader_program_idx: usize, scale: f32) {
+    let mut model_mat = Matrix4x4::new_scaling(scale, 1.0, scale);
     model_mat = Matrix4x4::new_translation(0.0, -1.0, 0.0) * model_mat;
     gfx.set_uniform_mat4x4("model_mat", shader_program_idx, &model_mat);
     gl::DrawArrays(gl::TRIANGLES, 12, 6);
