@@ -29,7 +29,6 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "Gamma_Correction",
                 "ambient_strength",
                 "specular_coef",
-                "Directional_Light_Num",
             ],
         ),
         ("Single Color shader", vec!["model_mat", "color"]),
@@ -40,6 +39,18 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
         (
             "Depth Visualization shader",
             vec!["model_mat", "view_mat", "projection_mat"],
+        ),
+        (
+            "Shadow Mapping shader",
+            vec![
+                "model_mat",
+                "light_space_matrix",
+                "Viewer_Position",
+                "Light_Sources_Num",
+                "Shadow_Map",
+                "min_shadow_bias",
+                "max_shadow_bias",
+            ],
         ),
     ];
     let mut variables = variables
@@ -56,7 +67,13 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
     for (shd_name, vars) in &mut variables {
         match shd_name.as_str() {
             "Advanced Lighting shader" => {
-                for i in 0..10 {
+                for i in 0..4 {
+                    vars.push(format!("Light_Sources[{}].position", i));
+                    vars.push(format!("Light_Sources[{}].color", i));
+                }
+            }
+            "Shadow Mapping shader" => {
+                for i in 0..1 {
                     vars.push(format!("Light_Sources[{}].position", i));
                     vars.push(format!("Light_Sources[{}].color", i));
                 }

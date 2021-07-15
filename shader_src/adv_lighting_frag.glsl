@@ -11,12 +11,18 @@ uniform vec3 Viewer_Position;
 uniform bool Blinn_Phong_Lighting = true;
 uniform bool Gamma_Correction = false;
 
-struct LightSource {
+struct PointLight {
     vec3 position;
     vec3 color;
 };
-uniform LightSource[10] Light_Sources;
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+};
+uniform PointLight[10] Light_Sources;
 uniform int Light_Sources_Num = 0;
+uniform DirectionalLight[3] Dir_Light_Sourses;
+uniform int Directional_Light_Num = 0;
 
 uniform float attenuation_constant_term = 1.0;
 uniform float attenuation_linear_term = 0.0;
@@ -27,10 +33,14 @@ uniform float specular_coef = 0.3;
 
 const float gamma = 2.2;
 
-vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir);
+vec4 calc_point_light(PointLight pl, vec3 normal, vec3 viewer_dir);
+vec4 calc_directional_light(DirectionalLight dl, vec3 normal, vec3 viewer_dir);
 
 void main() {
     vec3 viewer_dir = normalize(Viewer_Position - World_Pos);
+    for (int i = 0; i < Light_Sources_Num; i++) {
+        Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir);
+    }
     for (int i = 0; i < Light_Sources_Num; i++) {
         Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir);
     }
@@ -46,7 +56,7 @@ vec4 specular_lighting(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir)
 vec4 blinn_phong_specular(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir);
 float attenuation(vec3 source_pos);
 
-vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir) {
+vec4 calc_point_light(PointLight pl, vec3 normal, vec3 viewer_dir) {
     vec4 result = vec4(0.0);
     vec3 light_dir = normalize(pl.position - World_Pos);
     result += ambient_lighting(pl.color);
@@ -57,6 +67,19 @@ vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir) {
         result += specular_lighting(pl.color, light_dir, normal, viewer_dir) * specular_coef;
     }
     result *= attenuation(pl.position);
+    return result;
+}
+
+vec4 calc_directional_light(DirectionalLight dl, vec3 normal, vec3 viewer_dir) {
+    vec4 result = vec4(0.0);
+    vec3 light_dir = normalize(dl.direction);
+    result += ambient_lighting(dl.color);
+    result += diffuse_lighting(dl.color, light_dir, normal);
+    if (Blinn_Phong_Lighting) {
+        result += blinn_phong_specular(dl.color, light_dir, normal, viewer_dir) * specular_coef;
+    } else {
+        result += specular_lighting(dl.color, light_dir, normal, viewer_dir) * specular_coef;
+    }
     return result;
 }
 

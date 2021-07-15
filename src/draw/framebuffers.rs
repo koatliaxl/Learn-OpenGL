@@ -79,7 +79,7 @@ pub unsafe fn draw_framebuffers(
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[2]);
     draw_two_containers(gfx, 7, 1.0);
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 7);
+    draw_floor(gfx, 7, 10.0);
 
     gfx.set_uniform_mat4x4("projection_mat", 7, projection_matrix);
 
@@ -99,7 +99,7 @@ pub unsafe fn draw_framebuffers(
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[2]);
     draw_two_containers(gfx, 7, 1.0);
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 7);
+    draw_floor(gfx, 7, 10.0);
     // Draw Mirror obj (draw to rear-view mirror)
     let mut mirror_obj_model_mat = Matrix4x4::new_scaling(mirror_width, mirror_height, 0.0);
     let (mx, my, mz) = mirror_pos.get_components();
@@ -120,7 +120,7 @@ pub unsafe fn draw_framebuffers(
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[2]);
     draw_two_containers(gfx, 7, 1.0);
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 7);
+    draw_floor(gfx, 7, 10.0);
     // Draw Mirror obj (draw to texture)
     gfx.set_uniform_mat4x4("model_mat", 7, &mirror_obj_model_mat);
     gl::BindTexture(gl::TEXTURE_2D, tex_att_id);

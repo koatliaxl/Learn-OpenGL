@@ -1,7 +1,7 @@
 mod gl_data;
 pub use gl_data::*;
 
-use super::{Attenuation, GammaCorrection};
+use super::{Attenuation, GammaCorrection, ShadowMappingSettings};
 use crate::camera::Camera;
 use opengl_learn::gl::types::GLfloat;
 use std::time::{Duration, Instant};
@@ -22,6 +22,7 @@ pub struct State {
     pub gamma_correction: GammaCorrection,
     pub srgb_texture: bool,
     pub attenuation: Attenuation,
+    pub shadow_settings: ShadowMappingSettings,
 }
 
 impl State {
@@ -45,6 +46,11 @@ impl State {
                 constant_term: 1.0,
                 linear_term: 0.0,
                 quadratic_term: 0.0,
+            },
+            shadow_settings: ShadowMappingSettings {
+                min_shadow_bias: 0.0009,
+                max_shadow_bias: 0.0065,
+                cull_front_faces: false,
             },
         }
     }

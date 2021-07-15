@@ -17,7 +17,7 @@ pub unsafe fn draw_stencil_testing_scene(
     gl::ActiveTexture(gl::TEXTURE0);
 
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 5);
+    draw_floor(gfx, 5, 10.0);
 
     gl::Clear(gl::STENCIL_BUFFER_BIT);
     gl::Enable(gl::STENCIL_TEST);
