@@ -48,8 +48,8 @@ impl State {
                 quadratic_term: 0.0,
             },
             shadow_settings: ShadowMappingSettings {
-                min_shadow_bias: 0.0009,
-                max_shadow_bias: 0.0065,
+                min_shadow_bias: 0.003,
+                max_shadow_bias: 0.020,
                 cull_front_faces: false,
             },
         }

@@ -102,6 +102,8 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData) {
     );
     gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
     gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+    /*gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+    gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);*/
     gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_BORDER as i32);
     gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_BORDER as i32);
     let border_color = [1.0, 1.0, 1.0, 1.0];
@@ -118,6 +120,8 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData) {
     gl::ReadBuffer(gl::NONE);
 
     let light_projection_mat = Matrix4x4::new_orthographic_projection(20.0, 20.0, 7.5, 1.0);
+    /*let light_projection_mat =
+    Matrix4x4::new_perspective_projection_2(10.0, -10.0, 10.0, -10.0, 7.5, 1.0);*/
     use crate::camera::Camera;
     let light_pos = Vector3::new(-2.0, 4.0, -1.0);
     let light_view_mat =
