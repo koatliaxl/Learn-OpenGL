@@ -37,8 +37,8 @@ pub fn change_shadow_mapping_settings(state: &mut State, key: Key) {
         Key::L => {
             *cull_front_faces = !*cull_front_faces;
             match cull_front_faces {
-                true => println!("Enabled front face culling"),
-                false => println!("Disabled front face culling"),
+                true => println!("Enabled front face culling during shadow map generation"),
+                false => println!("Disabled front face culling during shadow map generation"),
             };
         }
         _ => unreachable!(),

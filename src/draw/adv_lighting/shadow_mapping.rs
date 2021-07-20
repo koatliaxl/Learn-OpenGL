@@ -8,12 +8,12 @@ use mat_vec::{Matrix4x4, Vector3};
 
 static SHADOW_WIDTH: GLsizei = 1024;
 static SHADOW_HEIGHT: GLsizei = 1024;
-static mut CUBES_MODEL_MATRICES: Vec<Matrix4x4<f32>> = Vec::new();
-
-static mut DEPTH_VISUALIZATION_SHADER: GLuint = 0;
-//static mut OBJECTS_TEXTURE: GLuint = 0;
-static mut LIGHT_SOURCE_SHADER: GLuint = 0;
+static mut VISUALIZE_DEPTH_MAP: bool = false;
 static FLOOR_SCALE: f32 = 25.0;
+
+static mut CUBES_MODEL_MATRICES: Vec<Matrix4x4<f32>> = Vec::new();
+static mut DEPTH_VISUALIZATION_SHADER: GLuint = 0;
+static mut LIGHT_SOURCE_SHADER: GLuint = 0;
 
 pub struct ShadowMappingSettings {
     pub min_shadow_bias: f32,
@@ -21,12 +21,7 @@ pub struct ShadowMappingSettings {
     pub cull_front_faces: bool, // (during the shadow map generation)
 }
 
-pub unsafe fn draw_shadow_mapping(
-    gfx: &GlData,
-    window: &Window,
-    state: &State,
-    visualize_depth_map: bool,
-) {
+pub unsafe fn draw_shadow_mapping(gfx: &GlData, window: &Window, state: &State) {
     // Render to the depth map
     gl::Viewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     let fbo_id = gfx.get_framebuffer_gl_id("Depth/Shadow Map");
@@ -52,7 +47,7 @@ pub unsafe fn draw_shadow_mapping(
     gl::BindFramebuffer(FRAMEBUFFER, 0);
     gl::Viewport(0, 0, window.get_size().0, window.get_size().1);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-    if visualize_depth_map {
+    if VISUALIZE_DEPTH_MAP {
         gl::UseProgram(DEPTH_VISUALIZATION_SHADER);
         gl::DrawArrays(gl::TRIANGLES, 0, 6);
     } else {
@@ -79,7 +74,7 @@ pub unsafe fn draw_shadow_mapping(
     }
 }
 
-pub unsafe fn setup_shadow_mapping(gfx: &mut GlData) {
+pub unsafe fn setup_shadow_mapping(gfx: &mut GlData, visualize_depth_map: bool) {
     let mut depth_map = 0;
     gl::GenFramebuffers(1, &mut depth_map);
     gfx.add_framebuffer(depth_map, "Depth/Shadow Map");
@@ -102,6 +97,8 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData) {
     );
     gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
     gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+    /*gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+    gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);*/
     gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_BORDER as i32);
     gl::TexParameteri(TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_BORDER as i32);
     let border_color = [1.0, 1.0, 1.0, 1.0];
@@ -118,6 +115,8 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData) {
     gl::ReadBuffer(gl::NONE);
 
     let light_projection_mat = Matrix4x4::new_orthographic_projection(20.0, 20.0, 7.5, 1.0);
+    /*let light_projection_mat =
+    Matrix4x4::new_perspective_projection_2(10.0, -10.0, 10.0, -10.0, 7.5, 1.0);*/
     use crate::camera::Camera;
     let light_pos = Vector3::new(-2.0, 4.0, -1.0);
     let light_view_mat =
@@ -136,20 +135,27 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData) {
     CUBES_MODEL_MATRICES.push(cube3_model_mat);
 
     gl::BindVertexArray(gfx.vertex_array_objects[2]);
-    gl::ActiveTexture(gl::TEXTURE0);
-    gl::BindTexture(TEXTURE_2D, gfx.get_texture_gl_id("Wood Flooring"));
+    VISUALIZE_DEPTH_MAP = visualize_depth_map;
     gl::ActiveTexture(gl::TEXTURE1);
-    gl::BindTexture(TEXTURE_2D, gfx.get_texture_attachment_gl_id("Depth Map"));
+    gl::BindTexture(TEXTURE_2D, depth_map_tex);
+    gl::ActiveTexture(gl::TEXTURE0);
+    if visualize_depth_map {
+        gl::BindTexture(TEXTURE_2D, depth_map_tex);
+    } else {
+        gl::BindTexture(TEXTURE_2D, gfx.get_texture_gl_id("Wood Flooring"));
+    }
     //gl::Enable(gl::FRAMEBUFFER_SRGB);
 
-    let shd_idx = gfx.get_shader_program_index("Depth Visualization shader");
-    DEPTH_VISUALIZATION_SHADER = gfx.shader_programs[shd_idx];
-    gl::UseProgram(DEPTH_VISUALIZATION_SHADER);
-    let quad_scaling = Matrix4x4::new_uniform_scaling(2.0);
-    gfx.set_uniform_mat4x4("model_mat", shd_idx, &quad_scaling);
-    let identity_mat = Matrix4x4::identity_matrix();
-    gfx.set_uniform_mat4x4("view_mat", shd_idx, &identity_mat);
-    gfx.set_uniform_mat4x4("projection_mat", shd_idx, &identity_mat);
+    if visualize_depth_map {
+        let shd_idx = gfx.get_shader_program_index("Depth Visualization shader");
+        DEPTH_VISUALIZATION_SHADER = gfx.shader_programs[shd_idx];
+        gl::UseProgram(DEPTH_VISUALIZATION_SHADER);
+        let quad_scaling = Matrix4x4::new_uniform_scaling(2.0);
+        gfx.set_uniform_mat4x4("model_mat", shd_idx, &quad_scaling);
+        let identity_mat = Matrix4x4::identity_matrix();
+        gfx.set_uniform_mat4x4("view_mat", shd_idx, &identity_mat);
+        gfx.set_uniform_mat4x4("projection_mat", shd_idx, &identity_mat);
+    }
 
     let shd_idx = gfx.get_shader_program_index("Shadow Mapping shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
@@ -160,13 +166,15 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData) {
     gfx.set_uniform_vec3f("Light_Sources[0].color", shd_idx, light_color);
     gfx.set_uniform_1i("Shadow_Map", shd_idx, 1);
 
-    let shd_idx = gfx.get_shader_program_index("Single Color shader");
-    LIGHT_SOURCE_SHADER = gfx.shader_programs[shd_idx];
-    gl::UseProgram(LIGHT_SOURCE_SHADER);
-    let scaling = Matrix4x4::new_uniform_scaling(0.1);
-    let (lx, ly, lz) = light_pos.get_components();
-    let translation = Matrix4x4::new_translation(lx, ly, lz);
-    let model_mat = translation * scaling;
-    gfx.set_uniform_mat4x4("model_mat", shd_idx, &model_mat);
-    gfx.set_uniform_vec3f("color", shd_idx, light_color);
+    if !visualize_depth_map {
+        let shd_idx = gfx.get_shader_program_index("Single Color shader");
+        LIGHT_SOURCE_SHADER = gfx.shader_programs[shd_idx];
+        gl::UseProgram(LIGHT_SOURCE_SHADER);
+        let scaling = Matrix4x4::new_uniform_scaling(0.1);
+        let (lx, ly, lz) = light_pos.get_components();
+        let translation = Matrix4x4::new_translation(lx, ly, lz);
+        let model_mat = translation * scaling;
+        gfx.set_uniform_mat4x4("model_mat", shd_idx, &model_mat);
+        gfx.set_uniform_vec3f("color", shd_idx, light_color);
+    }
 }

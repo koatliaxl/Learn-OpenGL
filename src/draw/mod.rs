@@ -142,7 +142,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model, windo
                 draw_blinn_phong_lighting(gfx, state.camera.position, state.blinn_phong_lighting)
             }
             GammaCorrection => draw_gamma_correction(gfx, state),
-            ShadowMapping => draw_shadow_mapping(gfx, window, state, false),
+            ShadowMapping => draw_shadow_mapping(gfx, window, state),
             _ => {}
         }
     }
@@ -174,7 +174,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             }
             BlinnPhongLighting => setup_blinn_phong_lighting(gfx),
             GammaCorrection => setup_gamma_correction(gfx, state),
-            ShadowMapping => setup_shadow_mapping(gfx),
+            ShadowMapping => setup_shadow_mapping(gfx, false),
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}
