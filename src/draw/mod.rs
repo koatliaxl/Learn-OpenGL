@@ -30,7 +30,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = ShadowMapping;
+static DRAW: Draw = BlendingScene;
 
 #[allow(unused)]
 enum Draw {

@@ -14,6 +14,7 @@ static FLOOR_SCALE: f32 = 25.0;
 static mut CUBES_MODEL_MATRICES: Vec<Matrix4x4<f32>> = Vec::new();
 static mut DEPTH_VISUALIZATION_SHADER: GLuint = 0;
 static mut LIGHT_SOURCE_SHADER: GLuint = 0;
+static mut DEPTH_MAP_FRAMEBUFFER: GLuint = 0;
 
 pub struct ShadowMappingSettings {
     pub min_shadow_bias: f32,
@@ -24,8 +25,9 @@ pub struct ShadowMappingSettings {
 pub unsafe fn draw_shadow_mapping(gfx: &GlData, window: &Window, state: &State) {
     // Render to the depth map
     gl::Viewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    let fbo_id = gfx.get_framebuffer_gl_id("Depth/Shadow Map");
-    gl::BindFramebuffer(FRAMEBUFFER, fbo_id);
+    /*let fbo_id = gfx.get_framebuffer_gl_id("Depth/Shadow Map");
+    gl::BindFramebuffer(FRAMEBUFFER, fbo_id);*/
+    gl::BindFramebuffer(FRAMEBUFFER, DEPTH_MAP_FRAMEBUFFER);
     gl::Clear(gl::DEPTH_BUFFER_BIT);
     let shd_idx = gfx.get_shader_program_index("Depth/Shadow Map shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
@@ -77,12 +79,10 @@ pub unsafe fn draw_shadow_mapping(gfx: &GlData, window: &Window, state: &State) 
 pub unsafe fn setup_shadow_mapping(gfx: &mut GlData, visualize_depth_map: bool) {
     let mut depth_map = 0;
     gl::GenFramebuffers(1, &mut depth_map);
-    gfx.add_framebuffer(depth_map, "Depth/Shadow Map");
     gl::BindFramebuffer(FRAMEBUFFER, depth_map);
 
     let mut depth_map_tex = 0;
     gl::GenTextures(1, &mut depth_map_tex);
-    gfx.add_texture_attachment(depth_map_tex, "Depth Map");
     gl::BindTexture(TEXTURE_2D, depth_map_tex);
     gl::TexImage2D(
         TEXTURE_2D,
@@ -113,14 +113,17 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData, visualize_depth_map: bool) 
     );
     gl::DrawBuffer(gl::NONE);
     gl::ReadBuffer(gl::NONE);
+    DEPTH_MAP_FRAMEBUFFER = depth_map;
+    gfx.add_framebuffer(depth_map, "Depth/Shadow Map");
+    gfx.add_texture_attachment(depth_map_tex, "Depth Map");
 
     let light_projection_mat = Matrix4x4::new_orthographic_projection(20.0, 20.0, 7.5, 1.0);
+    //todo by fov?
     /*let light_projection_mat =
     Matrix4x4::new_perspective_projection_2(10.0, -10.0, 10.0, -10.0, 7.5, 1.0);*/
-    use crate::camera::Camera;
     let light_pos = Vector3::new(-2.0, 4.0, -1.0);
     let light_view_mat =
-        Camera::calculate_look_at_matrix(light_pos, -!light_pos, Vector3::new(0.0, 1.0, 0.0));
+        Matrix4x4::new_LookAt_matrix(light_pos, -!light_pos, Vector3::new(0.0, 1.0, 0.0));
     let light_space_mat = light_projection_mat * light_view_mat;
 
     let shd_idx = gfx.get_shader_program_index("Depth/Shadow Map shader");

@@ -52,6 +52,10 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "max_shadow_bias",
             ],
         ),
+        (
+            "Point Shadows shader",
+            vec!["model_mat", "Light_Pos", "Far_Plane"],
+        ),
     ];
     let mut variables = variables
         .iter()
@@ -76,6 +80,11 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 for i in 0..1 {
                     vars.push(format!("Light_Sources[{}].position", i));
                     vars.push(format!("Light_Sources[{}].color", i));
+                }
+            }
+            "Point Shadows shader" => {
+                for i in 0..6 {
+                    vars.push(format!("light_space_matrices[{}]", i));
                 }
             }
             _ => {}
