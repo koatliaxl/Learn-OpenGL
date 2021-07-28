@@ -1,7 +1,7 @@
 use crate::gl;
 use crate::gl::types::{GLsizei, GLuint};
 use crate::gl::{CLAMP_TO_EDGE, TEXTURE_CUBE_MAP};
-use crate::state_and_cfg::GlData;
+use crate::state_and_cfg::{GlData, State};
 use glfw::Window;
 use mat_vec::{Matrix4x4, Vector3};
 
@@ -12,7 +12,7 @@ static FAR_PROJ_PLANE: f32 = 25.0;
 //static mut LIGHT_SPACE_TRANSFORMS: Vec<Matrix4x4<f32>> = Vec::new();
 static mut DEPTH_CUBEMAP_FBO: GLuint = 0;
 
-pub unsafe fn draw_point_shadows(gfx: &GlData, window: &Window) {
+pub unsafe fn draw_point_shadows(gfx: &GlData, window: &Window, ,state: &State) {
     // Render to depth cubemap
     gl::Viewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     gl::BindFramebuffer(gl::FRAMEBUFFER, DEPTH_CUBEMAP_FBO);
@@ -22,6 +22,10 @@ pub unsafe fn draw_point_shadows(gfx: &GlData, window: &Window) {
     gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
     gl::Viewport(0, 0, window.get_size().0, window.get_size().1);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+
+    let shd_idx = gfx.get_shader_program_index("Point Shadows shader");
+    gl::UseProgram(gfx.shader_programs[shd_idx]);
+    gfx.set_uniform_vec3f("Viewer_Position", shd_idx, state.camera.position);
 }
 
 pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
@@ -106,12 +110,27 @@ pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
     LIGHT_SPACE_TRANSFORMS.push(&light_space_proj * light_space_view_5);
     LIGHT_SPACE_TRANSFORMS.push(&light_space_proj * light_space_view_6);*/
 
-    let shd_idx = gfx.get_shader_program_index("Point Shadows shader");
+    let shd_idx = gfx.get_shader_program_index("Depth cubemap shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
-    //gfx.set_uniform_3f("Light_Pos", shd_idx, );
+    gfx.set_uniform_vec3f("Light_Pos", shd_idx, light_pos);
     gfx.set_uniform_1f("Far_Plane", shd_idx, FAR_PROJ_PLANE);
     for i in 0..6 {
         let var_name = format!("light_space_matrices[{}]", i);
         gfx.set_uniform_mat4x4(&var_name, shd_idx, &light_space_matrices[i]);
     }
+
+    let shd_idx = gfx.get_shader_program_index("Point Shadows shader");
+    gl::UseProgram(gfx.shader_programs[shd_idx]);
+    gfx.set_uniform_vec3f("Light_Source.position", shd_idx, light_pos);
+    gfx.set_uniform_vec3f("Light_Source.color", shd_idx, Vector3::new(1.0, 1.0, 1.0));
+    gfx.set_uniform_1f("Far_Plane", shd_idx, FAR_PROJ_PLANE);
+    gfx.set_uniform_1i("Depth_Cubemap", shd_idx, 1);
+    gfx.set_uniform_1f("Shininess", shd_idx, 32.0);
+
+    gl::BindVertexArray(gfx.vertex_array_objects[2]);
+    gl::ActiveTexture(gl::TEXTURE1);
+    gl::BindTexture(gl::TEXTURE_CUBE_MAP, depth_cubemap);
+    let gl_id = gfx.get_texture_gl_id("Wood Flooring");
+    gl::ActiveTexture(gl::TEXTURE0);
+    gl::BindTexture(gl::TEXTURE_2D, gl_id);
 }

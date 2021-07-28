@@ -166,14 +166,19 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
             FRAGMENT_SHADER,
             "Shadow Mapping fragment shader",
         );
-        let point_shadows_geom = gen_shader_from_file(
-            "shader_src/point_shadows_geom.glsl",
+        let depth_cubemap_geom = gen_shader_from_file(
+            "shader_src/depth_cubemap_geom.glsl",
             GEOMETRY_SHADER,
-            "Point Shadows geometry shader",
+            "Depth cubemap geometry shader",
+        );
+        let depth_cubemap_frag = gen_shader_from_file(
+            "shader_src/depth_cubemap_frag.glsl",
+            FRAGMENT_SHADER,
+            "Depth cubemap fragment shader",
         );
         let point_shadows_frag = gen_shader_from_file(
-            "shader_src/point_shadows_frag.glsl",
-            FRAGMENT_SHADER,
+            "shader_src/depth_cubemap_frag.glsl",
+            GEOMETRY_SHADER,
             "Point Shadows fragment shader",
         );
 
@@ -241,6 +246,7 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
                 shadow_mapping_frag,
                 "Shadow Mapping shader",
             ),
+            (ub_vertex_shd, point_shadows_frag, "Point Shadows shader"),
         ];
         println!();
         for (vertex_shd, frag_shd, shd_program_name) in &shader_programs {
@@ -273,9 +279,9 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
             ),
             (
                 ib_vertex_shd,
-                point_shadows_geom,
-                point_shadows_frag,
-                "Point Shadows shader",
+                depth_cubemap_geom,
+                depth_cubemap_frag,
+                "Depth cubemap shader",
             ),
         ];
         for (
@@ -326,7 +332,8 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
         gl::DeleteShader(depth_visualization_frag);
         gl::DeleteShader(shadow_mapping_vrtx);
         gl::DeleteShader(shadow_mapping_frag);
-        gl::DeleteShader(point_shadows_geom);
+        gl::DeleteShader(depth_cubemap_geom);
+        gl::DeleteShader(depth_cubemap_frag);
         gl::DeleteShader(point_shadows_frag);
     }
 }

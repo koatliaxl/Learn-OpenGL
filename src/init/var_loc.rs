@@ -50,11 +50,24 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "Shadow_Map",
                 "min_shadow_bias",
                 "max_shadow_bias",
+                "Shininess",
             ],
         ),
         (
-            "Point Shadows shader",
+            "Depth cubemap shader",
             vec!["model_mat", "Light_Pos", "Far_Plane"],
+        ),
+        (
+            "Point Shadows shader",
+            vec![
+                "model_mat",
+                "Light_Source.position",
+                "Light_Source.color",
+                "Far_Plane",
+                "Depth_Cubemap",
+                "Viewer_Position",
+                "Shininess",
+            ],
         ),
     ];
     let mut variables = variables
@@ -82,7 +95,7 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                     vars.push(format!("Light_Sources[{}].color", i));
                 }
             }
-            "Point Shadows shader" => {
+            "Depth cubemap shader" => {
                 for i in 0..6 {
                     vars.push(format!("light_space_matrices[{}]", i));
                 }
