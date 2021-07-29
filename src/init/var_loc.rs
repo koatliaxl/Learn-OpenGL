@@ -50,12 +50,11 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "Shadow_Map",
                 "min_shadow_bias",
                 "max_shadow_bias",
-                "Shininess",
             ],
         ),
         (
             "Depth cubemap shader",
-            vec!["model_mat", "Light_Pos", "Far_Plane"],
+            vec!["model_mat", "Light_Pos", "Far_Plane", "reverse_normals"],
         ),
         (
             "Point Shadows shader",
@@ -66,7 +65,9 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "Far_Plane",
                 "Depth_Cubemap",
                 "Viewer_Position",
-                "Shininess",
+                "reverse_normals",
+                /*"Shadow_Bias"*/
+                "Visualize_Cubemap_Depth_Buffer",
             ],
         ),
     ];

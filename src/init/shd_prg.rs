@@ -177,8 +177,8 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
             "Depth cubemap fragment shader",
         );
         let point_shadows_frag = gen_shader_from_file(
-            "shader_src/depth_cubemap_frag.glsl",
-            GEOMETRY_SHADER,
+            "shader_src/point_shadows_frag.glsl",
+            FRAGMENT_SHADER,
             "Point Shadows fragment shader",
         );
 
@@ -279,8 +279,8 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
             ),
             (
                 ib_vertex_shd,
-                depth_cubemap_geom,
                 depth_cubemap_frag,
+                depth_cubemap_geom,
                 "Depth cubemap shader",
             ),
         ];

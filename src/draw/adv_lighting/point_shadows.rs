@@ -9,23 +9,44 @@ static SHADOW_WIDTH: GLsizei = 1024;
 static SHADOW_HEIGHT: GLsizei = 1024;
 static NEAR_PROJ_PLANE: f32 = 1.0;
 static FAR_PROJ_PLANE: f32 = 25.0;
-//static mut LIGHT_SPACE_TRANSFORMS: Vec<Matrix4x4<f32>> = Vec::new();
+static mut CUBES_MODEL_MATRICES: Vec<Matrix4x4<f32>> = Vec::new();
 static mut DEPTH_CUBEMAP_FBO: GLuint = 0;
+static mut LIGHT_SOURCE_SHADER: GLuint = 0;
 
-pub unsafe fn draw_point_shadows(gfx: &GlData, window: &Window, ,state: &State) {
+pub unsafe fn draw_point_shadows(gfx: &GlData, window: &Window, state: &State) {
     // Render to depth cubemap
     gl::Viewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     gl::BindFramebuffer(gl::FRAMEBUFFER, DEPTH_CUBEMAP_FBO);
     gl::Clear(gl::DEPTH_BUFFER_BIT);
+    let shd_idx = gfx.get_shader_program_index("Depth cubemap shader");
+    gl::UseProgram(gfx.shader_programs[shd_idx]);
+    render_scene(&gfx, shd_idx);
 
     // Render scene as normal
     gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
     gl::Viewport(0, 0, window.get_size().0, window.get_size().1);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-
     let shd_idx = gfx.get_shader_program_index("Point Shadows shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
     gfx.set_uniform_vec3f("Viewer_Position", shd_idx, state.camera.position);
+    render_scene(&gfx, shd_idx);
+
+    gl::UseProgram(LIGHT_SOURCE_SHADER);
+    gl::DrawArrays(gl::TRIANGLES, 0, 36);
+}
+
+unsafe fn render_scene(gfx: &GlData, shd_idx: usize) {
+    // Room cube
+    let model_mat = Matrix4x4::new_uniform_scaling(10.0);
+    gfx.set_uniform_mat4x4("model_mat", shd_idx, &model_mat);
+    gfx.set_uniform_1i("reverse_normals", shd_idx, 1);
+    gl::DrawArrays(gl::TRIANGLES, 0, 36);
+    gfx.set_uniform_1i("reverse_normals", shd_idx, 0);
+    // Cubes
+    for matrix in &CUBES_MODEL_MATRICES {
+        gfx.set_uniform_mat4x4("model_mat", shd_idx, &matrix);
+        gl::DrawArrays(gl::TRIANGLES, 0, 36);
+    }
 }
 
 pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
@@ -61,7 +82,7 @@ pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
     gfx.add_framebuffer(fbo, "Depth Cubemap FBO");
     DEPTH_CUBEMAP_FBO = fbo;
 
-    let light_pos = Vector3::new(-2.0, 2.0, 0.0);
+    let light_pos = Vector3::new(0.0, 0.0, 0.0);
 
     let aspect_ratio = SHADOW_WIDTH as f32 / SHADOW_HEIGHT as f32;
     let light_space_proj =
@@ -96,19 +117,21 @@ pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
         light_pos + Vector3::new(0.0, 0.0, -1.0),
         Vector3::new(0.0, -1.0, 0.0),
     );
-    let mut light_space_matrices = [Matrix4x4::zero_matrix(); 6];
+    //let mut light_space_matrices = [Matrix4x4::zero_matrix(); 6];
+    let mut light_space_matrices = [
+        Matrix4x4::zero_matrix(),
+        Matrix4x4::zero_matrix(),
+        Matrix4x4::zero_matrix(),
+        Matrix4x4::zero_matrix(),
+        Matrix4x4::zero_matrix(),
+        Matrix4x4::zero_matrix(),
+    ];
     light_space_matrices[0] = &light_space_proj * light_space_view_1;
     light_space_matrices[1] = &light_space_proj * light_space_view_2;
     light_space_matrices[2] = &light_space_proj * light_space_view_3;
     light_space_matrices[3] = &light_space_proj * light_space_view_4;
     light_space_matrices[4] = &light_space_proj * light_space_view_5;
     light_space_matrices[5] = &light_space_proj * light_space_view_6;
-    /*LIGHT_SPACE_TRANSFORMS.push(&light_space_proj * light_space_view_1);
-    LIGHT_SPACE_TRANSFORMS.push(&light_space_proj * light_space_view_2);
-    LIGHT_SPACE_TRANSFORMS.push(&light_space_proj * light_space_view_3);
-    LIGHT_SPACE_TRANSFORMS.push(&light_space_proj * light_space_view_4);
-    LIGHT_SPACE_TRANSFORMS.push(&light_space_proj * light_space_view_5);
-    LIGHT_SPACE_TRANSFORMS.push(&light_space_proj * light_space_view_6);*/
 
     let shd_idx = gfx.get_shader_program_index("Depth cubemap shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
@@ -125,7 +148,7 @@ pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
     gfx.set_uniform_vec3f("Light_Source.color", shd_idx, Vector3::new(1.0, 1.0, 1.0));
     gfx.set_uniform_1f("Far_Plane", shd_idx, FAR_PROJ_PLANE);
     gfx.set_uniform_1i("Depth_Cubemap", shd_idx, 1);
-    gfx.set_uniform_1f("Shininess", shd_idx, 32.0);
+    //gfx.set_uniform_1f("Shininess", shd_idx, 32.0);
 
     gl::BindVertexArray(gfx.vertex_array_objects[2]);
     gl::ActiveTexture(gl::TEXTURE1);
@@ -133,4 +156,24 @@ pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
     let gl_id = gfx.get_texture_gl_id("Wood Flooring");
     gl::ActiveTexture(gl::TEXTURE0);
     gl::BindTexture(gl::TEXTURE_2D, gl_id);
+
+    CUBES_MODEL_MATRICES.push(Matrix4x4::new_translation(4.0, -3.5, 0.0));
+    CUBES_MODEL_MATRICES
+        .push(Matrix4x4::new_translation(2.0, 3.0, 1.0) * Matrix4x4::new_uniform_scaling(1.5));
+    CUBES_MODEL_MATRICES.push(Matrix4x4::new_translation(-3.0, -1.0, 0.0));
+    CUBES_MODEL_MATRICES.push(Matrix4x4::new_translation(-1.5, 1.0, 1.5));
+    let scaling = Matrix4x4::new_uniform_scaling(1.5);
+    let rotation = Matrix4x4::new_rotation(60.0, !Vector3::new(1.0, 0.0, 1.0));
+    let translation = Matrix4x4::new_translation(-1.5, 2.0, -3.0);
+    CUBES_MODEL_MATRICES.push(translation * rotation * scaling);
+
+    let shd_idx = gfx.get_shader_program_index("Single Color shader");
+    LIGHT_SOURCE_SHADER = gfx.shader_programs[shd_idx];
+    gl::UseProgram(LIGHT_SOURCE_SHADER);
+    let scaling = Matrix4x4::new_uniform_scaling(0.1);
+    let (lx, ly, lz) = light_pos.get_components();
+    let translation = Matrix4x4::new_translation(lx, ly, lz);
+    let model_mat = translation * scaling;
+    gfx.set_uniform_mat4x4("model_mat", shd_idx, &model_mat);
+    gfx.set_uniform_vec3f("color", shd_idx, Vector3::new(1.0, 1.0, 1.0));
 }

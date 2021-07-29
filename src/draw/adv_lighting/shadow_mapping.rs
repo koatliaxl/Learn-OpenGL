@@ -168,7 +168,6 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData, visualize_depth_map: bool) 
     let light_color = Vector3::new(1.0, 1.0, 1.0);
     gfx.set_uniform_vec3f("Light_Sources[0].color", shd_idx, light_color);
     gfx.set_uniform_1i("Shadow_Map", shd_idx, 1);
-    //gfx.set_uniform_1f("Shininess", shd_idx, 32.0); todo?
 
     if !visualize_depth_map {
         let shd_idx = gfx.get_shader_program_index("Single Color shader");

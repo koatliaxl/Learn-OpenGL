@@ -30,7 +30,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = BlendingScene;
+static DRAW: Draw = ShadowMapping;
 
 #[allow(unused)]
 enum Draw {
@@ -52,6 +52,7 @@ enum Draw {
     BlinnPhongLighting,
     GammaCorrection,
     ShadowMapping,
+    PointShadows,
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -143,6 +144,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model, windo
             }
             GammaCorrection => draw_gamma_correction(gfx, state),
             ShadowMapping => draw_shadow_mapping(gfx, window, state),
+            PointShadows => draw_point_shadows(gfx, window, state),
             _ => {}
         }
     }
@@ -175,6 +177,10 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             BlinnPhongLighting => setup_blinn_phong_lighting(gfx),
             GammaCorrection => setup_gamma_correction(gfx, state),
             ShadowMapping => setup_shadow_mapping(gfx, false),
+            PointShadows => {
+                setup_point_shadows(gfx);
+                state.camera.speed = 25.0
+            }
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}
