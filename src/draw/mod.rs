@@ -14,7 +14,9 @@ mod lighting;
 mod stencil_testing;
 mod ubo_use;
 
-pub use adv_lighting::{Attenuation, GammaCorrection, ShadowMappingSettings};
+pub use adv_lighting::{
+    Attenuation, GammaCorrection, LightProjectionMatrix, ShadowMappingSettings,
+};
 
 use self::cubes::draw_cubes;
 use self::{

@@ -10,6 +10,7 @@ static SHADOW_WIDTH: GLsizei = 1024;
 static SHADOW_HEIGHT: GLsizei = 1024;
 static mut VISUALIZE_DEPTH_MAP: bool = false;
 static FLOOR_SCALE: f32 = 25.0;
+static LIGHT_POSITION: (f32, f32, f32) = (-2.0, 4.0, -1.0);
 
 static mut CUBES_MODEL_MATRICES: Vec<Matrix4x4<f32>> = Vec::new();
 static mut DEPTH_VISUALIZATION_SHADER: GLuint = 0;
@@ -20,17 +21,30 @@ pub struct ShadowMappingSettings {
     pub min_shadow_bias: f32,
     pub max_shadow_bias: f32,
     pub cull_front_faces: bool, // (during the shadow map generation)
+    pub projection_matrix: LightProjectionMatrix,
+    pub projection_fov: f32, // in degrees
+}
+#[derive(Copy, Clone)]
+pub enum LightProjectionMatrix {
+    Orthographic,
+    Perspective,
+}
+impl ShadowMappingSettings {
+    pub const DEFAULT_MIN_SHADOW_BIAS_FOR_PERSPECTIVE: f32 = 0.0004;
+    pub const DEFAULT_MAX_SHADOW_BIAS_FOR_PERSPECTIVE: f32 = 0.006;
+    pub const DEFAULT_MIN_SHADOW_BIAS_FOR_ORTHOGRAPHIC: f32 = 0.0026;
+    pub const DEFAULT_MAX_SHADOW_BIAS_FOR_ORTHOGRAPHIC: f32 = 0.037;
 }
 
 pub unsafe fn draw_shadow_mapping(gfx: &GlData, window: &Window, state: &State) {
     // Render to the depth map
     gl::Viewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    /*let fbo_id = gfx.get_framebuffer_gl_id("Depth/Shadow Map");
-    gl::BindFramebuffer(FRAMEBUFFER, fbo_id);*/
     gl::BindFramebuffer(FRAMEBUFFER, DEPTH_MAP_FRAMEBUFFER);
     gl::Clear(gl::DEPTH_BUFFER_BIT);
     let shd_idx = gfx.get_shader_program_index("Depth/Shadow Map shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
+    let light_space_mat = calc_light_space_matrix(&state.shadow_settings);
+    gfx.set_uniform_mat4x4("light_space_mat", shd_idx, &light_space_mat);
     draw_floor(gfx, shd_idx, FLOOR_SCALE);
     if state.shadow_settings.cull_front_faces {
         gl::Enable(gl::CULL_FACE);
@@ -66,6 +80,7 @@ pub unsafe fn draw_shadow_mapping(gfx: &GlData, window: &Window, state: &State) 
             shd_idx,
             state.shadow_settings.max_shadow_bias,
         );
+        gfx.set_uniform_mat4x4("light_space_matrix", shd_idx, &light_space_mat);
         draw_floor(gfx, shd_idx, FLOOR_SCALE);
         for matrix in &CUBES_MODEL_MATRICES {
             gfx.set_uniform_mat4x4("model_mat", shd_idx, matrix);
@@ -74,6 +89,20 @@ pub unsafe fn draw_shadow_mapping(gfx: &GlData, window: &Window, state: &State) 
         gl::UseProgram(LIGHT_SOURCE_SHADER);
         gl::DrawArrays(gl::TRIANGLES, 0, 36);
     }
+}
+
+unsafe fn calc_light_space_matrix(shadow_setting: &ShadowMappingSettings) -> Matrix4x4<f32> {
+    use LightProjectionMatrix::*;
+    let light_pos = Vector3::from_tuple(LIGHT_POSITION);
+    let light_projection_mat = match shadow_setting.projection_matrix {
+        Orthographic => Matrix4x4::new_orthographic_projection(20.0, 20.0, 7.5, 1.0),
+        Perspective => {
+            Matrix4x4::new_perspective_projection(shadow_setting.projection_fov, 1.0, 7.5, 1.0)
+        }
+    };
+    let light_view_mat =
+        Matrix4x4::new_LookAt_matrix(light_pos, -!light_pos, Vector3::new(0.0, 1.0, 0.0));
+    light_projection_mat * light_view_mat
 }
 
 pub unsafe fn setup_shadow_mapping(gfx: &mut GlData, visualize_depth_map: bool) {
@@ -117,19 +146,6 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData, visualize_depth_map: bool) 
     gfx.add_framebuffer(depth_map, "Depth/Shadow Map");
     gfx.add_texture_attachment(depth_map_tex, "Depth Map");
 
-    let light_projection_mat = Matrix4x4::new_orthographic_projection(20.0, 20.0, 7.5, 1.0);
-    //todo by fov?
-    /*let light_projection_mat =
-    Matrix4x4::new_perspective_projection_2(10.0, -10.0, 10.0, -10.0, 7.5, 1.0);*/
-    let light_pos = Vector3::new(-2.0, 4.0, -1.0);
-    let light_view_mat =
-        Matrix4x4::new_LookAt_matrix(light_pos, -!light_pos, Vector3::new(0.0, 1.0, 0.0));
-    let light_space_mat = light_projection_mat * light_view_mat;
-
-    let shd_idx = gfx.get_shader_program_index("Depth/Shadow Map shader");
-    gl::UseProgram(gfx.shader_programs[shd_idx]);
-    gfx.set_uniform_mat4x4("light_space_mat", shd_idx, &light_space_mat);
-
     CUBES_MODEL_MATRICES.push(Matrix4x4::new_translation(0.0, 1.5, 0.0));
     CUBES_MODEL_MATRICES.push(Matrix4x4::new_translation(2.0, 0.0, 1.0));
     let mut cube3_model_mat = Matrix4x4::new_uniform_scaling(0.5);
@@ -160,9 +176,10 @@ pub unsafe fn setup_shadow_mapping(gfx: &mut GlData, visualize_depth_map: bool) 
         gfx.set_uniform_mat4x4("projection_mat", shd_idx, &identity_mat);
     }
 
+    let light_pos = Vector3::from_tuple(LIGHT_POSITION);
+
     let shd_idx = gfx.get_shader_program_index("Shadow Mapping shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
-    gfx.set_uniform_mat4x4("light_space_matrix", shd_idx, &light_space_mat);
     gfx.set_uniform_1i("Light_Sources_Num", shd_idx, 1);
     gfx.set_uniform_vec3f("Light_Sources[0].position", shd_idx, light_pos);
     let light_color = Vector3::new(1.0, 1.0, 1.0);

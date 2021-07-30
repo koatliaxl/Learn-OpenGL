@@ -1,7 +1,7 @@
 mod gl_data;
 pub use gl_data::*;
 
-use super::{Attenuation, GammaCorrection, ShadowMappingSettings};
+use super::{Attenuation, GammaCorrection, LightProjectionMatrix, ShadowMappingSettings};
 use crate::camera::Camera;
 use opengl_learn::gl::types::GLfloat;
 use std::time::{Duration, Instant};
@@ -48,9 +48,11 @@ impl State {
                 quadratic_term: 0.0,
             },
             shadow_settings: ShadowMappingSettings {
-                min_shadow_bias: 0.003,
-                max_shadow_bias: 0.020,
+                min_shadow_bias: ShadowMappingSettings::DEFAULT_MIN_SHADOW_BIAS_FOR_PERSPECTIVE,
+                max_shadow_bias: ShadowMappingSettings::DEFAULT_MAX_SHADOW_BIAS_FOR_PERSPECTIVE,
                 cull_front_faces: false,
+                projection_matrix: LightProjectionMatrix::Perspective,
+                projection_fov: 90.0,
             },
         }
     }
