@@ -15,6 +15,6 @@ float linearize_depth(float depth) {
 
 void main() {
     float depth_value = texture(depth_map, Tex_Coords).r;
-    FragColor = vec4(vec3(linearize_depth(depth_value) / far), 1.0); // perspective
-    //FragColor = vec4(vec3(depth_value), 1.0); // orthographic
+    FragColor = vec4(vec3(linearize_depth(depth_value) / far), 1.0); // for perspective projection
+    //FragColor = vec4(vec3(depth_value), 1.0); // for orthographic projection
 }

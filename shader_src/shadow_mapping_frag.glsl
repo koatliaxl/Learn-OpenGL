@@ -8,7 +8,7 @@ out vec4 Frag_Color;
 
 uniform sampler2D Diffuse_Texture;
 uniform sampler2D Shadow_Map;
-uniform float Shininess;
+uniform float Shininess = 32.0;
 uniform vec3 Viewer_Position;
 //uniform bool Gamma_Correction = false;
 

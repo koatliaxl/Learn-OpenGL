@@ -67,7 +67,7 @@ pub unsafe fn draw_framebuffers(
     let proj_plane_left = mirror_width / 2.0 - proj_on_r_axis;
     let proj_plane_top = mirror_height / 2.0 - proj_on_t_axis;
     let proj_plane_bottom = -mirror_height / 2.0 - proj_on_t_axis;
-    let mirror_projection_mat = Matrix4x4::new_perspective_projection_2(
+    let mirror_projection_mat = Matrix4x4::new_perspective_projection_by_dimensions(
         proj_plane_right,
         proj_plane_left,
         proj_plane_top,

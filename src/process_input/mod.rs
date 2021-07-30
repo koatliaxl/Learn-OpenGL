@@ -86,7 +86,8 @@ pub fn process_input(
                                 false => println!("Using non-sRGB(a) texture"),
                             }
                         }
-                        Key::Comma | Key::Period | Key::N | Key::M | Key::L => {
+                        Key::Comma | Key::Period | Key::N | Key::M | Key::L |
+                        Key::P | Key::LeftBracket | Key::RightBracket=> {
                             change_shadow_mapping_settings(state, key);
                         }
                         _ => {}
