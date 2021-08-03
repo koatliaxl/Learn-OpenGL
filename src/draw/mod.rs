@@ -15,7 +15,8 @@ mod stencil_testing;
 mod ubo_use;
 
 pub use adv_lighting::{
-    Attenuation, GammaCorrection, LightProjectionMatrix, ShadowMappingSettings,
+    Attenuation, GammaCorrection, LightProjectionMatrix, OmnidirectionalShadowMappingSetting,
+    ShadowMappingSettings,
 };
 
 use self::cubes::draw_cubes;
@@ -32,10 +33,10 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = ShadowMapping;
+pub static DRAW: Draw = PointShadows;
 
 #[allow(unused)]
-enum Draw {
+pub enum Draw {
     Triangle,
     Cubes,
     LightingScene,
@@ -54,6 +55,7 @@ enum Draw {
     BlinnPhongLighting,
     GammaCorrection,
     ShadowMapping,
+    PointShadows,
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -145,6 +147,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model, windo
             }
             GammaCorrection => draw_gamma_correction(gfx, state),
             ShadowMapping => draw_shadow_mapping(gfx, window, state),
+            PointShadows => draw_point_shadows(gfx, window, state),
             _ => {}
         }
     }
@@ -177,6 +180,10 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             BlinnPhongLighting => setup_blinn_phong_lighting(gfx),
             GammaCorrection => setup_gamma_correction(gfx, state),
             ShadowMapping => setup_shadow_mapping(gfx, false),
+            PointShadows => {
+                setup_point_shadows(gfx);
+                state.camera.speed = 25.0
+            }
 
             _AdvDataUse => adv_data_use(gfx),
             _ => {}
@@ -211,6 +218,8 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         bind_uniform_block("Matrices", "Advanced Lighting shader", 0, gfx);
         bind_uniform_block("Matrices", "Single Color shader", 0, gfx);
         bind_uniform_block("Matrices", "Shadow Mapping shader", 0, gfx);
+        bind_uniform_block("Matrices", "Depth cubemap shader", 0, gfx);
+        bind_uniform_block("Matrices", "Point Shadows shader", 0, gfx);
     }
 }
 

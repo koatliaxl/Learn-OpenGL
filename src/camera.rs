@@ -17,11 +17,6 @@ impl Camera {
         let position = Vector3::new(0.0, 0.0, 3.0);
         let direction = Vector3::new(0.0, 0.0, -1.0);
         let world_up_direction = Vector3::new(0.0, 1.0, 0.0);
-        /*let look_at_matrix = Camera::calculate_look_at_matrix(
-            position, /* Rustfmt force vertical formatting */
-            direction,
-            world_up_direction,
-        );*/
         let look_at_matrix = Matrix4x4::new_LookAt_matrix(
             position,
             direction,
@@ -41,11 +36,6 @@ impl Camera {
     pub fn recalculate_look_at_matrix(&mut self) {
         self.look_at_matrix =
             Matrix4x4::new_LookAt_matrix(self.position, self.direction, self.world_up_direction);
-        /*self.look_at_matrix = Camera::calculate_look_at_matrix(
-            self.position,
-            self.direction,
-            self.world_up_direction,
-        );*/
     }
 
     /*pub fn calculate_look_at_matrix(

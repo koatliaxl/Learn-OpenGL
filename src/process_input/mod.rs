@@ -4,6 +4,7 @@ mod shadows;
 mod textures;
 mod view;
 
+use crate::draw::Draw::*;
 use crate::state_and_cfg::{Config, State};
 use camera::*;
 use glfw::{Action, CursorMode, Key, Window, WindowEvent};
@@ -47,9 +48,6 @@ pub fn process_input(
             WindowEvent::Key(key, _, action, _) => {
                 if action == Action::Repeat || action == Action::Press {
                     match key {
-                        Key::Up | Key::Down | Key::Left | Key::Right => {
-                            change_textures(key,  state);
-                        }
                         Key::Num1 | Key::Num2 | Key::Num3 | Key::Num4 | Key::Num5 | Key::Num6 |
                         //Key::Num7 | Key::Num8 | Key::Num9 | Key::Num0 |
                         Key::Minus | Key::Equal=> {
@@ -86,10 +84,38 @@ pub fn process_input(
                                 false => println!("Using non-sRGB(a) texture"),
                             }
                         }
-                        Key::Comma | Key::Period | Key::N | Key::M | Key::L |
-                        Key::P | Key::LeftBracket | Key::RightBracket=> {
-                            change_shadow_mapping_settings(state, key);
-                        }
+                        _ => {}
+                    }
+                    match crate::DRAW {
+                        ShadowMapping => match key {
+                            Key::Comma
+                            | Key::Period
+                            | Key::N
+                            | Key::M
+                            | Key::L
+                            | Key::P
+                            | Key::LeftBracket
+                            | Key::RightBracket => {
+                                change_shadow_mapping_settings(state, key);
+                            }
+                            _ => {}
+                        },
+                        PointShadows => match key {
+                            Key::V
+                            | Key::P
+                            | Key::Comma
+                            | Key::Period
+                            | Key::LeftBracket
+                            | Key::RightBracket
+                            | Key::Apostrophe => change_point_shadow_settings(state, key),
+                            _ => {}
+                        },
+                        Cubes => match key {
+                            Key::Up | Key::Down | Key::Left | Key::Right => {
+                                change_textures(key, state);
+                            }
+                            _ => {}
+                        },
                         _ => {}
                     }
                 }

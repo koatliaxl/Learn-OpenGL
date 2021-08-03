@@ -15,6 +15,7 @@ layout (std140) uniform Matrices {
     mat4 view;
     mat4 projection;
 };
+uniform bool reverse_normals = false;
 
 void main() {
     vec4 world_pos = model_mat * vec4(in_Position, 1.0);
@@ -22,6 +23,10 @@ void main() {
 
     mat3 normal_matrix = mat3(transpose(inverse(model_mat)));
     Normal = normalize(normal_matrix * in_Normal);
+    if (reverse_normals) {
+        // a slight hack to make sure the outer large cube can display lighting from the 'inside'
+        Normal *= -1.0;
+    }
     Tex_Coords = in_Tex_Coords;
     Color = in_Color;
     World_Pos = world_pos.xyz;
