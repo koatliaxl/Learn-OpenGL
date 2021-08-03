@@ -13,6 +13,14 @@ static mut CUBES_MODEL_MATRICES: Vec<Matrix4x4<f32>> = Vec::new();
 static mut DEPTH_CUBEMAP_FBO: GLuint = 0;
 static mut LIGHT_SOURCE_SHADER: GLuint = 0;
 
+pub struct OmnidirectionalShadowMappingSetting {
+    pub visualize_depth_buffer: bool,
+    pub pcf: bool,
+    pub bias: f32,
+    pub pcf_disk_radius: f32,
+    pub disk_based_on_view_distance: bool, // PCF sample disk radius
+}
+
 pub unsafe fn draw_point_shadows(gfx: &GlData, window: &Window, state: &State) {
     // Render to depth cubemap
     gl::Viewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -28,11 +36,40 @@ pub unsafe fn draw_point_shadows(gfx: &GlData, window: &Window, state: &State) {
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     let shd_idx = gfx.get_shader_program_index("Point Shadows shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
-    gfx.set_uniform_vec3f("Viewer_Position", shd_idx, state.camera.position);
+    set_uniforms(&gfx, shd_idx, state);
     render_scene(&gfx, shd_idx);
 
     gl::UseProgram(LIGHT_SOURCE_SHADER);
     gl::DrawArrays(gl::TRIANGLES, 0, 36);
+}
+
+unsafe fn set_uniforms(gfx: &GlData, shd_idx: usize, state: &State) {
+    gfx.set_uniform_vec3f("Viewer_Position", shd_idx, state.camera.position);
+    gfx.set_uniform_1i(
+        "visualize_cubemap_depth_buffer",
+        shd_idx,
+        match state.point_shadow_settings.visualize_depth_buffer {
+            true => 1,
+            false => 0,
+        },
+    );
+    gfx.set_uniform_1i(
+        "PCF",
+        shd_idx,
+        match state.point_shadow_settings.pcf {
+            true => 1,
+            false => 0,
+        },
+    );
+    gfx.set_uniform_1f("Shadow_Bias", shd_idx, state.point_shadow_settings.bias);
+    gfx.set_uniform_1f(
+        "PCF_Disk_Radius",
+        shd_idx,
+        match state.point_shadow_settings.disk_based_on_view_distance {
+            false => state.point_shadow_settings.pcf_disk_radius,
+            true => -1.0,
+        },
+    );
 }
 
 unsafe fn render_scene(gfx: &GlData, shd_idx: usize) {
@@ -117,27 +154,19 @@ pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
         light_pos + Vector3::new(0.0, 0.0, -1.0),
         Vector3::new(0.0, -1.0, 0.0),
     );
-    //let mut light_space_matrices = [Matrix4x4::zero_matrix(); 6];
-    let mut light_space_matrices = [
-        Matrix4x4::zero_matrix(),
-        Matrix4x4::zero_matrix(),
-        Matrix4x4::zero_matrix(),
-        Matrix4x4::zero_matrix(),
-        Matrix4x4::zero_matrix(),
-        Matrix4x4::zero_matrix(),
-    ];
-    light_space_matrices[0] = &light_space_proj * light_space_view_1;
-    light_space_matrices[1] = &light_space_proj * light_space_view_2;
-    light_space_matrices[2] = &light_space_proj * light_space_view_3;
-    light_space_matrices[3] = &light_space_proj * light_space_view_4;
-    light_space_matrices[4] = &light_space_proj * light_space_view_5;
-    light_space_matrices[5] = &light_space_proj * light_space_view_6;
+    let mut light_space_matrices = Vec::with_capacity(6);
+    light_space_matrices.push(&light_space_proj * light_space_view_1);
+    light_space_matrices.push(&light_space_proj * light_space_view_2);
+    light_space_matrices.push(&light_space_proj * light_space_view_3);
+    light_space_matrices.push(&light_space_proj * light_space_view_4);
+    light_space_matrices.push(&light_space_proj * light_space_view_5);
+    light_space_matrices.push(&light_space_proj * light_space_view_6);
 
     let shd_idx = gfx.get_shader_program_index("Depth cubemap shader");
     gl::UseProgram(gfx.shader_programs[shd_idx]);
     gfx.set_uniform_vec3f("Light_Pos", shd_idx, light_pos);
     gfx.set_uniform_1f("Far_Plane", shd_idx, FAR_PROJ_PLANE);
-    for i in 0..6 {
+    for i in 0..light_space_matrices.len() {
         let var_name = format!("light_space_matrices[{}]", i);
         gfx.set_uniform_mat4x4(&var_name, shd_idx, &light_space_matrices[i]);
     }
@@ -148,7 +177,6 @@ pub unsafe fn setup_point_shadows(gfx: &mut GlData) {
     gfx.set_uniform_vec3f("Light_Source.color", shd_idx, Vector3::new(1.0, 1.0, 1.0));
     gfx.set_uniform_1f("Far_Plane", shd_idx, FAR_PROJ_PLANE);
     gfx.set_uniform_1i("Depth_Cubemap", shd_idx, 1);
-    //gfx.set_uniform_1f("Shininess", shd_idx, 32.0);
 
     gl::BindVertexArray(gfx.vertex_array_objects[2]);
     gl::ActiveTexture(gl::TEXTURE1);

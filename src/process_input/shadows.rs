@@ -1,4 +1,4 @@
-use crate::draw::LightProjectionMatrix;
+use crate::draw::{LightProjectionMatrix, OmnidirectionalShadowMappingSetting};
 use crate::state_and_cfg::State;
 use crate::ShadowMappingSettings;
 use glfw::Key;
@@ -82,6 +82,63 @@ pub fn change_shadow_mapping_settings(state: &mut State, key: Key) {
                 *projection_fov = 179.0
             }
             println!("Shadow mapping - projection FOV: {}", projection_fov);
+        }
+        _ => unreachable!(),
+    }
+}
+
+pub fn change_point_shadow_settings(state: &mut State, key: Key) {
+    let OmnidirectionalShadowMappingSetting {
+        visualize_depth_buffer,
+        pcf,
+        bias,
+        pcf_disk_radius,
+        disk_based_on_view_distance,
+    } = &mut state.point_shadow_settings;
+
+    match key {
+        Key::V => {
+            *visualize_depth_buffer = !*visualize_depth_buffer;
+            match visualize_depth_buffer {
+                true => println!("Enabled depth buffer visualization"),
+                false => println!("Disabled depth buffer visualization"),
+            }
+        }
+        Key::Comma => {
+            *bias -= 0.002;
+            if *bias < 0.0 {
+                *bias = 0.0
+            }
+            println!("Shadow bias: {}", bias);
+        }
+        Key::Period => {
+            *bias += 0.002;
+            println!("Shadow bias: {}", bias);
+        }
+        Key::P => {
+            *pcf = !*pcf;
+            match pcf {
+                true => println!("Enabled percentage-closer filtering"),
+                false => println!("Disabled percentage-closer filtering"),
+            }
+        }
+        Key::LeftBracket => {
+            *pcf_disk_radius -= 0.002;
+            if *pcf_disk_radius < 0.0 {
+                *pcf_disk_radius = 0.0
+            }
+            println!("PCF sample disk radius: {}", pcf_disk_radius);
+        }
+        Key::RightBracket => {
+            *pcf_disk_radius += 0.002;
+            println!("PCF sample disk radius: {}", pcf_disk_radius);
+        }
+        Key::Apostrophe => {
+            *disk_based_on_view_distance = !*disk_based_on_view_distance;
+            match disk_based_on_view_distance {
+                true => println!("PCF disk radius based on view distance"),
+                false => println!("PCF disk radius is constant"),
+            }
         }
         _ => unreachable!(),
     }

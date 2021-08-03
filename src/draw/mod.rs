@@ -15,7 +15,8 @@ mod stencil_testing;
 mod ubo_use;
 
 pub use adv_lighting::{
-    Attenuation, GammaCorrection, LightProjectionMatrix, ShadowMappingSettings,
+    Attenuation, GammaCorrection, LightProjectionMatrix, OmnidirectionalShadowMappingSetting,
+    ShadowMappingSettings,
 };
 
 use self::cubes::draw_cubes;
@@ -32,10 +33,10 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-static DRAW: Draw = ShadowMapping;
+pub static DRAW: Draw = PointShadows;
 
 #[allow(unused)]
-enum Draw {
+pub enum Draw {
     Triangle,
     Cubes,
     LightingScene,
@@ -217,6 +218,8 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         bind_uniform_block("Matrices", "Advanced Lighting shader", 0, gfx);
         bind_uniform_block("Matrices", "Single Color shader", 0, gfx);
         bind_uniform_block("Matrices", "Shadow Mapping shader", 0, gfx);
+        bind_uniform_block("Matrices", "Depth cubemap shader", 0, gfx);
+        bind_uniform_block("Matrices", "Point Shadows shader", 0, gfx);
     }
 }
 

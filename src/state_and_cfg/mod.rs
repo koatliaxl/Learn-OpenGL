@@ -3,6 +3,7 @@ pub use gl_data::*;
 
 use super::{Attenuation, GammaCorrection, LightProjectionMatrix, ShadowMappingSettings};
 use crate::camera::Camera;
+use crate::draw::OmnidirectionalShadowMappingSetting;
 use opengl_learn::gl::types::GLfloat;
 use std::time::{Duration, Instant};
 
@@ -23,6 +24,7 @@ pub struct State {
     pub srgb_texture: bool,
     pub attenuation: Attenuation,
     pub shadow_settings: ShadowMappingSettings,
+    pub point_shadow_settings: OmnidirectionalShadowMappingSetting,
 }
 
 impl State {
@@ -53,6 +55,13 @@ impl State {
                 cull_front_faces: false,
                 projection_matrix: LightProjectionMatrix::Perspective,
                 projection_fov: 90.0,
+            },
+            point_shadow_settings: OmnidirectionalShadowMappingSetting {
+                visualize_depth_buffer: false,
+                pcf: true,
+                bias: 0.13,
+                pcf_disk_radius: 0.05,
+                disk_based_on_view_distance: false,
             },
         }
     }

@@ -8,4 +8,5 @@ fn main() {
             .write_bindings(GlobalGenerator, &mut file)
             .unwrap();
     }
+    println!("cargo:rerun-if-changed=./gl/bindings.rs");
 }

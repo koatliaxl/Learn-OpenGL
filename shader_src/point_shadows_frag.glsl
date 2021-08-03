@@ -9,8 +9,10 @@ uniform samplerCube Depth_Cubemap;
 uniform sampler2D Diffuse_Texture;
 uniform vec3 Viewer_Position;
 uniform float Far_Plane;
-uniform float Shadow_Bias = 0.05;
-uniform bool Visualize_Cubemap_Depth_Buffer = false;
+uniform float Shadow_Bias;
+uniform bool visualize_cubemap_depth_buffer;
+uniform bool PCF;
+uniform float PCF_Disk_Radius;
 
 struct LightSource {
     vec3 position;
@@ -18,7 +20,7 @@ struct LightSource {
 };
 uniform LightSource Light_Source;
 
-uniform float Shininess = 32.0;
+uniform float Shininess = 64.0;
 uniform float attenuation_constant_term = 1.0;
 uniform float attenuation_linear_term = 0.0;
 uniform float attenuation_quadratic_term = 0.0;
@@ -26,11 +28,15 @@ uniform float ambient_strength = 0.2;
 uniform float specular_coef = 0.3;
 
 vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir, vec3 frag_pos);
-float calc_shadow_value(vec4 frag_pos, vec3 ligh_pos);
+float closest_depth(vec3 frag_pos, vec3 ligh_pos);
 
 void main() {
     vec3 viewer_dir = normalize(Viewer_Position - World_Pos);
-    Frag_Color = calc_point_light(Light_Source, Normal, viewer_dir, World_Pos);
+    if (!visualize_cubemap_depth_buffer) {
+        Frag_Color = calc_point_light(Light_Source, Normal, viewer_dir, World_Pos);
+    } else {
+        Frag_Color = vec4(vec3(closest_depth(World_Pos, Light_Source.position)), 1.0);
+    }
 }
 
 float calc_shadow_value(vec3 frag_pos, vec3 ligh_pos) {
@@ -44,6 +50,42 @@ float calc_shadow_value(vec3 frag_pos, vec3 ligh_pos) {
     return frag_depth - Shadow_Bias > closest_depth ? 1.0 : 0.0;
 }
 
+const int samples = 20;
+const vec3[samples] sample_offset_directions = vec3[] (
+    vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
+    vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+    vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+    vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+    vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);
+
+float pcf_shadow_value(vec3 frag_pos, vec3 ligh_pos) {
+    vec3 frag_to_light = frag_pos - ligh_pos;
+    float frag_depth = length(frag_to_light);
+    float pcf_disk_radius;
+    if (PCF_Disk_Radius < 0.0) {
+        float view_distance = length(Viewer_Position - frag_pos);
+        pcf_disk_radius = (1.0 + (view_distance / Far_Plane)) / 25.0;
+    } else {
+        pcf_disk_radius = PCF_Disk_Radius;
+    }
+    float shadow_value = 0.0;
+    for (int i = 0; i < samples; ++i) {
+        vec3 offset = sample_offset_directions[i] * pcf_disk_radius;
+        float closest_depth = texture(Depth_Cubemap, frag_to_light + offset).r;
+        closest_depth *= Far_Plane;
+        if (frag_depth - Shadow_Bias > closest_depth)
+            shadow_value += 1.0;
+    }
+    return shadow_value / float(samples);
+}
+
+float closest_depth(vec3 frag_pos, vec3 ligh_pos) {
+    vec3 frag_to_light = frag_pos - ligh_pos;
+    float closest_depth = texture(Depth_Cubemap, frag_to_light).r;
+    return closest_depth;
+}
+
 vec4 ambient_lighting(vec3 light);
 vec4 diffuse_lighting(vec3 light, vec3 light_dir, vec3 normal);
 vec4 specular_lighting(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_dir);
@@ -55,8 +97,12 @@ vec4 calc_point_light(LightSource pl, vec3 normal, vec3 viewer_dir, vec3 frag_po
     vec4 ambient = ambient_lighting(pl.color);
     vec4 diffuse = diffuse_lighting(pl.color, light_dir, normal);
     vec4 specular = blinn_phong_specular(pl.color, light_dir, normal, viewer_dir) * specular_coef;
-
-    float shadow_value = calc_shadow_value(frag_pos, pl.position);
+    float shadow_value;
+    if (!PCF) {
+        shadow_value = calc_shadow_value(frag_pos, pl.position);
+    } else {
+        shadow_value = pcf_shadow_value(frag_pos, pl.position);
+    }
     vec4 lighting = ambient + (1.0 - shadow_value) * (diffuse + specular);
 
     lighting *= attenuation(pl.position, frag_pos);

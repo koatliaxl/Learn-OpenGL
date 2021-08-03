@@ -66,8 +66,10 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "Depth_Cubemap",
                 "Viewer_Position",
                 "reverse_normals",
-                /*"Shadow_Bias"*/
-                "Visualize_Cubemap_Depth_Buffer",
+                "Shadow_Bias",
+                "visualize_cubemap_depth_buffer",
+                "PCF",
+                "PCF_Disk_Radius",
             ],
         ),
     ];

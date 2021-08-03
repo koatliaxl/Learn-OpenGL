@@ -7,7 +7,7 @@ mod shaders;
 mod state_and_cfg;
 
 pub use ::opengl_learn::gl;
-pub use draw::{Attenuation, GammaCorrection};
+pub use draw::{Attenuation, GammaCorrection, DRAW};
 
 use self::draw::*;
 use self::init::*;
