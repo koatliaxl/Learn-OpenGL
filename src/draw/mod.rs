@@ -33,7 +33,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-pub static DRAW: Draw = PointShadows;
+pub static DRAW: Draw = FrameBuffers;
 
 #[allow(unused)]
 pub enum Draw {

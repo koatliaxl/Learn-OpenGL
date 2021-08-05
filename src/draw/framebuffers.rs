@@ -36,8 +36,10 @@ pub unsafe fn draw_framebuffers(
     camera: Camera,
 ) {
     gl::UseProgram(gfx.shader_programs[7]);
-    gl::BindVertexArray(gfx.vertex_array_objects[2]);
-    gl::ActiveTexture(gl::TEXTURE0);
+
+    let mirror_pos = Vector3::new(0.0, 2.0, -5.0);
+    let mirror_norm = !Vector3::new(0.0, 0.0, 1.0);
+    let (mirror_width, mirror_height) = (5.0, 5.0);
 
     gl::Enable(gl::DEPTH_TEST);
 
@@ -46,36 +48,16 @@ pub unsafe fn draw_framebuffers(
     gl::BindFramebuffer(gl::FRAMEBUFFER, fb_id);
     gl::ClearColor(0.4, 0.5, 0.4, 1.0);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-    let mirror_pos = Vector3::new(0.0, 2.0, -5.0);
-    let mirror_norm = !Vector3::new(0.0, 0.0, 1.0);
-    let cam_to_mir_dist = (camera.position - mirror_pos) % mirror_norm;
-    // closest point to cameras (real and mirror/"imaginary") on mirror plane
-    let closest_point_to_cam = camera.position - mirror_norm * cam_to_mir_dist;
-    let mut mirror_camera = camera.clone();
-    mirror_camera.position = 2.0 * closest_point_to_cam - camera.position;
-    mirror_camera.direction = mirror_norm;
-    mirror_camera.recalculate_look_at_matrix();
-    gfx.set_uniform_mat4x4("view_mat", 7, &mirror_camera.look_at_matrix);
-    let mirror_right_axis = !Vector3::new(-1.0, 0.0, 0.0);
-    let mirror_top_axis = !Vector3::new(0.0, 1.0, 0.0);
-    // mirror position to cam projection point (on mirror plane) vector
-    let mir_to_point_vec = closest_point_to_cam - mirror_pos;
-    let proj_on_r_axis = mir_to_point_vec % mirror_right_axis;
-    let proj_on_t_axis = mir_to_point_vec % mirror_top_axis;
-    let (mirror_width, mirror_height) = (5.0, 5.0);
-    let proj_plane_right = -mirror_width / 2.0 - proj_on_r_axis;
-    let proj_plane_left = mirror_width / 2.0 - proj_on_r_axis;
-    let proj_plane_top = mirror_height / 2.0 - proj_on_t_axis;
-    let proj_plane_bottom = -mirror_height / 2.0 - proj_on_t_axis;
-    let mirror_projection_mat = Matrix4x4::new_perspective_projection_by_dimensions(
-        proj_plane_right,
-        proj_plane_left,
-        proj_plane_top,
-        proj_plane_bottom,
-        100.0,
-        cam_to_mir_dist,
+    let (mirror_view_mat, mirror_proj_mat) = calculate_mirror_space_matrices(
+        mirror_pos,
+        mirror_norm,
+        mirror_width,
+        mirror_height,
+        camera.position,
+        camera.world_up_direction,
     );
-    gfx.set_uniform_mat4x4("projection_mat", 7, &mirror_projection_mat);
+    gfx.set_uniform_mat4x4("view_mat", 7, &mirror_view_mat);
+    gfx.set_uniform_mat4x4("projection_mat", 7, &mirror_proj_mat);
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[2]);
     draw_two_containers(gfx, 7, 1.0);
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
@@ -130,6 +112,7 @@ pub unsafe fn draw_framebuffers(
     let identity_mat = Matrix4x4::identity_matrix();
     gfx.set_uniform_mat4x4("view_mat", 8, &identity_mat);
     gfx.set_uniform_mat4x4("projection_mat", 8, &identity_mat);
+
     gl::Disable(gl::DEPTH_TEST);
 
     // Draw to screen with post-processing
@@ -157,12 +140,59 @@ pub unsafe fn draw_framebuffers(
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
 }
 
+unsafe fn calculate_mirror_space_matrices(
+    mirror_pos: Vector3<f32>,
+    mirror_norm: Vector3<f32>,
+    mirror_width: f32,
+    mirror_height: f32,
+    camera_pos: Vector3<f32>,
+    world_up_dir: Vector3<f32>,
+) -> (Matrix4x4<f32>, Matrix4x4<f32>) {
+    // View matrix
+    let cam_to_mir_dist = (camera_pos - mirror_pos) % mirror_norm;
+    // closest point to cameras (real and mirror/"imaginary") on mirror plane
+    let closest_point_to_cam = camera_pos - mirror_norm * cam_to_mir_dist;
+    //let mut mirror_camera = camera.clone();
+    // imaginary viewer from opposite (to real viewer) side of the mirror
+    let mirror_camera_pos = 2.0 * closest_point_to_cam - camera_pos;
+    /*mirror_camera.direction = mirror_norm;
+    mirror_camera.recalculate_look_at_matrix();*/
+    let mirror_view_matrix =
+        Matrix4x4::new_LookAt_matrix(mirror_camera_pos, mirror_norm, world_up_dir);
+
+    // Projection Matrix
+    /*let mirror_right_axis = !Vector3::new(-1.0, 0.0, 0.0);
+    let mirror_top_axis = !Vector3::new(0.0, 1.0, 0.0);*/
+    let mirror_right_axis = !(mirror_norm ^ world_up_dir);
+    let mirror_top_axis = !(mirror_right_axis ^ mirror_norm);
+    // mirror position to cam projection point (on mirror plane) vector
+    let mir_to_point_vec = closest_point_to_cam - mirror_pos;
+    let proj_on_r_axis = mir_to_point_vec % mirror_right_axis;
+    let proj_on_t_axis = mir_to_point_vec % mirror_top_axis;
+    let proj_plane_right = -mirror_width / 2.0 - proj_on_r_axis;
+    let proj_plane_left = mirror_width / 2.0 - proj_on_r_axis;
+    let proj_plane_top = mirror_height / 2.0 - proj_on_t_axis;
+    let proj_plane_bottom = -mirror_height / 2.0 - proj_on_t_axis;
+    let mirror_projection_mat = Matrix4x4::new_perspective_projection_by_dimensions(
+        proj_plane_right,
+        proj_plane_left,
+        proj_plane_top,
+        proj_plane_bottom,
+        100.0,
+        cam_to_mir_dist,
+    );
+
+    (mirror_view_matrix, mirror_projection_mat)
+}
+
 pub unsafe fn setup_framebuffers(
     gfx: &mut GlData,
     window_size: (i32, i32),
     post_processing_opt: PostProcessingOption,
     rear_view_mirror_post_processing_opt: PostProcessingOption,
 ) {
+    gl::BindVertexArray(gfx.vertex_array_objects[2]);
+    gl::ActiveTexture(gl::TEXTURE0);
     POST_PROCESSING_OPTION = post_processing_opt;
     REAR_VIEW_MIRROR_POST_PROCESSING_OPTION = rear_view_mirror_post_processing_opt;
     println!();
