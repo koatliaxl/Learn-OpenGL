@@ -18,6 +18,7 @@ pub use adv_lighting::{
     Attenuation, GammaCorrection, LightProjectionMatrix, OmnidirectionalShadowMappingSetting,
     ShadowMappingSettings,
 };
+pub use framebuffers::PostProcessingOption;
 
 use self::cubes::draw_cubes;
 use self::{
@@ -130,6 +131,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model, windo
                 //&view_mat,
                 &projection_mat,
                 state.camera.clone(),
+                state,
             ),
             CubeMap => draw_cubemap_scene(
                 gfx,
@@ -167,8 +169,8 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             FrameBuffers => setup_framebuffers(
                 gfx,
                 window.get_size(),
-                PostProcessingOption::CustomKernel2,
-                PostProcessingOption::GaussianBlur5x5,
+                //PostProcessingOption::CustomKernel2,
+                //PostProcessingOption::GaussianBlur5x5,
             ),
             CubeMap => setup_cubemap_scene(gfx, model),
             UniformBufferObjectsUse => setup_ubo_use(gfx),

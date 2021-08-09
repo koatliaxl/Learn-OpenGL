@@ -1,9 +1,11 @@
 mod gl_data;
 pub use gl_data::*;
 
-use super::{Attenuation, GammaCorrection, LightProjectionMatrix, ShadowMappingSettings};
 use crate::camera::Camera;
-use crate::draw::OmnidirectionalShadowMappingSetting;
+use crate::draw::{
+    Attenuation, GammaCorrection, LightProjectionMatrix, OmnidirectionalShadowMappingSetting,
+    PostProcessingOption, ShadowMappingSettings,
+};
 use opengl_learn::gl::types::GLfloat;
 use std::time::{Duration, Instant};
 
@@ -25,6 +27,7 @@ pub struct State {
     pub attenuation: Attenuation,
     pub shadow_settings: ShadowMappingSettings,
     pub point_shadow_settings: OmnidirectionalShadowMappingSetting,
+    pub post_processing_option: PostProcessingOption,
 }
 
 impl State {
@@ -63,6 +66,7 @@ impl State {
                 pcf_disk_radius: 0.05,
                 disk_based_on_view_distance: false,
             },
+            post_processing_option: PostProcessingOption::GaussianBlur3x3,
         }
     }
 }

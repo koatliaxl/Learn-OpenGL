@@ -1,14 +1,15 @@
 use super::{draw_floor, draw_two_containers};
 use crate::camera::Camera;
+use crate::draw::framebuffers::PostProcessingOption::GaussianBlur5x5;
 use crate::gl;
 use crate::gl::types::GLenum;
-use crate::state_and_cfg::GlData;
+use crate::state_and_cfg::{GlData, State};
 use mat_vec::{Matrix4x4, Vector3};
 use opengl_learn::check_framebuffer_gl_status;
+use std::fmt::{Display, Error, Formatter};
 
-static mut POST_PROCESSING_OPTION: PostProcessingOption = PostProcessingOption::None;
-static mut REAR_VIEW_MIRROR_POST_PROCESSING_OPTION: PostProcessingOption =
-    PostProcessingOption::None;
+//static mut POST_PROCESSING_OPTION: PostProcessingOption = PostProcessingOption::None;
+static mut REAR_VIEW_MIR_PP_OPTION: PostProcessingOption = PostProcessingOption::None;
 
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
@@ -34,6 +35,7 @@ pub unsafe fn draw_framebuffers(
     //view_matrix: &Matrix4x4<f32>,
     projection_matrix: &Matrix4x4<f32>,
     camera: Camera,
+    state: &State,
 ) {
     gl::UseProgram(gfx.shader_programs[7]);
 
@@ -63,7 +65,7 @@ pub unsafe fn draw_framebuffers(
     gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
     draw_floor(gfx, 7, 10.0);
 
-    gfx.set_uniform_mat4x4("projection_mat", 7, projection_matrix);
+    //gfx.set_uniform_mat4x4("projection_mat", 7, projection_matrix);
 
     // Draw to rear-view mirror
     let fb_id = gfx.get_framebuffer_gl_id("Mirror Rear-view framebuffer");
@@ -121,7 +123,8 @@ pub unsafe fn draw_framebuffers(
     gl::Clear(gl::COLOR_BUFFER_BIT);
     let model_mat = Matrix4x4::new_scaling(2.0, 2.0, 0.0);
     gfx.set_uniform_mat4x4("model_mat", 8, &model_mat);
-    gfx.set_uniform_1i("mode", 8, POST_PROCESSING_OPTION.int_code());
+    //gfx.set_uniform_1i("mode", 8, POST_PROCESSING_OPTION.int_code());
+    gfx.set_uniform_1i("mode", 8, state.post_processing_option.int_code());
     let tex_att_id = gfx.get_texture_attachment_gl_id("Texture Attachment 1");
     gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
@@ -133,7 +136,7 @@ pub unsafe fn draw_framebuffers(
     gfx.set_uniform_1i(
         "mode",
         8,
-        REAR_VIEW_MIRROR_POST_PROCESSING_OPTION.int_code(), /* Rustfmt force vertical formatting */
+        REAR_VIEW_MIR_PP_OPTION.int_code(), /* Rustfmt force vertical formatting */
     );
     let tex_att_id = gfx.get_texture_attachment_gl_id("Mirror Rear-view texture attachment");
     gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
@@ -152,17 +155,12 @@ unsafe fn calculate_mirror_space_matrices(
     let cam_to_mir_dist = (camera_pos - mirror_pos) % mirror_norm;
     // closest point to cameras (real and mirror/"imaginary") on mirror plane
     let closest_point_to_cam = camera_pos - mirror_norm * cam_to_mir_dist;
-    //let mut mirror_camera = camera.clone();
     // imaginary viewer from opposite (to real viewer) side of the mirror
     let mirror_camera_pos = 2.0 * closest_point_to_cam - camera_pos;
-    /*mirror_camera.direction = mirror_norm;
-    mirror_camera.recalculate_look_at_matrix();*/
     let mirror_view_matrix =
         Matrix4x4::new_LookAt_matrix(mirror_camera_pos, mirror_norm, world_up_dir);
 
     // Projection Matrix
-    /*let mirror_right_axis = !Vector3::new(-1.0, 0.0, 0.0);
-    let mirror_top_axis = !Vector3::new(0.0, 1.0, 0.0);*/
     let mirror_right_axis = !(mirror_norm ^ world_up_dir);
     let mirror_top_axis = !(mirror_right_axis ^ mirror_norm);
     // mirror position to cam projection point (on mirror plane) vector
@@ -188,13 +186,13 @@ unsafe fn calculate_mirror_space_matrices(
 pub unsafe fn setup_framebuffers(
     gfx: &mut GlData,
     window_size: (i32, i32),
-    post_processing_opt: PostProcessingOption,
-    rear_view_mirror_post_processing_opt: PostProcessingOption,
+    //post_processing_opt: PostProcessingOption,
+    //rear_view_mirror_post_processing_opt: PostProcessingOption,
 ) {
     gl::BindVertexArray(gfx.vertex_array_objects[2]);
     gl::ActiveTexture(gl::TEXTURE0);
-    POST_PROCESSING_OPTION = post_processing_opt;
-    REAR_VIEW_MIRROR_POST_PROCESSING_OPTION = rear_view_mirror_post_processing_opt;
+    //POST_PROCESSING_OPTION = post_processing_opt;
+    REAR_VIEW_MIR_PP_OPTION = GaussianBlur5x5;
     println!();
     create_framebuffer(
         gfx,
@@ -327,5 +325,50 @@ impl PostProcessingOption {
             CustomKernel2 => 12,
             VerticalEdgeDetection => 13,
         }
+    }
+
+    pub fn from_int_code(code: i32) -> PostProcessingOption {
+        use PostProcessingOption::*;
+        match code {
+            0 => None,
+            1 => Inversion,
+            2 => Grayscale,
+            3 => GrayscalePhysicallyAccurate,
+            4 => SharpenKernel,
+            5 => GaussianBlur3x3,
+            6 => EdgeDetection,
+            7 => GaussianBlur5x5,
+            8 => EmbossKernel,
+            9 => BoxBlur,
+            10 => SharpenKernel2,
+            11 => CustomKernel,
+            12 => CustomKernel2,
+            13 => VerticalEdgeDetection,
+            _ => None,
+        }
+    }
+}
+
+impl Display for PostProcessingOption {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        use PostProcessingOption::*;
+        let text = match self {
+            None => "None",
+            Inversion => "Inversion",
+            Grayscale => "Grayscale",
+            GrayscalePhysicallyAccurate => "Physically Accurate Grayscale",
+            SharpenKernel => "Sharpen",
+            GaussianBlur3x3 => "Gaussian Blur 3x3",
+            EdgeDetection => "Edge Detection",
+            GaussianBlur5x5 => "Gaussian Blur 5x5",
+            EmbossKernel => "Emboss",
+            BoxBlur => "Box Blur",
+            SharpenKernel2 => "Sharpen 2",
+            CustomKernel => "Custom Kernel",
+            CustomKernel2 => "Custom Kernel 2",
+            VerticalEdgeDetection => "Vertical Edge Detection",
+        };
+        write!(f, "{}", text)?;
+        Ok(())
     }
 }
