@@ -1,12 +1,25 @@
 use super::{draw_floor, draw_two_containers};
 use crate::gl;
-use crate::gl::types::GLenum;
+use crate::gl::types::{GLenum, GLuint};
 use crate::state_and_cfg::{GlData, State};
 use mat_vec::{Matrix4x4, Vector3};
 use opengl_learn::check_framebuffer_gl_status;
 use std::fmt::{Display, Error, Formatter};
 
 static mut REAR_VIEW_MIR_PP_OPTION: PostProcessingOption = PostProcessingOption::GaussianBlur5x5;
+
+static mut DEFAULT_SHADER: usize = 0;
+static mut POST_PROCESSING_SHADER: usize = 0;
+
+static mut CONTAINER_TEXTURE: GLuint = 0;
+static mut FLOOR_TEXTURE: GLuint = 0;
+
+static mut MIRROR_FRAMEBUFFER: GLuint = 0;
+static mut MIRROR_TEX_ATTACHMENT: GLuint = 0;
+static mut REAR_VIEW_MIR_FRAMEBUFFER: GLuint = 0;
+static mut REAR_VIEW_MIR_TEX_ATTACHMENT: GLuint = 0;
+static mut POST_PROCESSING_FRAMEUFFER: GLuint = 0;
+static mut POST_PROCESSING_TEX_ATTACHMENT: GLuint = 0;
 
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
@@ -28,7 +41,7 @@ pub enum PostProcessingOption {
 }
 
 pub unsafe fn draw_framebuffers(gfx: &GlData, projection_matrix: &Matrix4x4<f32>, state: &State) {
-    gl::UseProgram(gfx.shader_programs[7]);
+    gl::UseProgram(gfx.shader_programs[DEFAULT_SHADER]);
 
     let mirror_pos = Vector3::new(0.0, 2.0, -5.0);
     let mirror_norm = !Vector3::new(0.0, 0.0, 1.0);
@@ -37,8 +50,7 @@ pub unsafe fn draw_framebuffers(gfx: &GlData, projection_matrix: &Matrix4x4<f32>
     gl::Enable(gl::DEPTH_TEST);
 
     // Draw to Mirror obj
-    let fb_id = gfx.get_framebuffer_gl_id("Mirror reflection framebuffer");
-    gl::BindFramebuffer(gl::FRAMEBUFFER, fb_id);
+    gl::BindFramebuffer(gl::FRAMEBUFFER, MIRROR_FRAMEBUFFER);
     gl::ClearColor(0.4, 0.5, 0.4, 1.0);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     let (mirror_view_mat, mirror_proj_mat) = calculate_mirror_space_matrices(
@@ -49,80 +61,87 @@ pub unsafe fn draw_framebuffers(gfx: &GlData, projection_matrix: &Matrix4x4<f32>
         state.camera.position,
         state.camera.world_up_direction,
     );
-    gfx.set_uniform_mat4x4("view_mat", 7, &mirror_view_mat);
-    gfx.set_uniform_mat4x4("projection_mat", 7, &mirror_proj_mat);
-    gl::BindTexture(gl::TEXTURE_2D, gfx.textures[2]);
-    draw_two_containers(gfx, 7, 1.0);
-    gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 7, 10.0);
+    gfx.set_uniform_mat4x4("view_mat", DEFAULT_SHADER, &mirror_view_mat);
+    gfx.set_uniform_mat4x4("projection_mat", DEFAULT_SHADER, &mirror_proj_mat);
+    gl::BindTexture(gl::TEXTURE_2D, CONTAINER_TEXTURE);
+    draw_two_containers(gfx, DEFAULT_SHADER, 1.0);
+    gl::BindTexture(gl::TEXTURE_2D, FLOOR_TEXTURE);
+    draw_floor(gfx, DEFAULT_SHADER, 10.0);
 
     // Draw to rear-view mirror
-    let fb_id = gfx.get_framebuffer_gl_id("Mirror Rear-view framebuffer");
-    gl::BindFramebuffer(gl::FRAMEBUFFER, fb_id);
+    gl::BindFramebuffer(gl::FRAMEBUFFER, REAR_VIEW_MIR_FRAMEBUFFER);
     gl::ClearColor(0.4, 0.4, 0.4, 1.0);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     let mut rear_view_mirror_camera = state.camera.clone();
     rear_view_mirror_camera.direction *= -1;
     rear_view_mirror_camera.recalculate_look_at_matrix();
-    gfx.set_uniform_mat4x4("view_mat", 7, &rear_view_mirror_camera.look_at_matrix);
+    gfx.set_uniform_mat4x4(
+        "view_mat",
+        DEFAULT_SHADER,
+        &rear_view_mirror_camera.look_at_matrix,
+    );
     let mut flip_x_projection_mat = projection_matrix.clone();
     let e_r0c0 = flip_x_projection_mat.get(0, 0);
     flip_x_projection_mat.set(0, 0, -e_r0c0);
-    gfx.set_uniform_mat4x4("projection_mat", 7, &flip_x_projection_mat);
-    gl::BindTexture(gl::TEXTURE_2D, gfx.textures[2]);
-    draw_two_containers(gfx, 7, 1.0);
-    gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 7, 10.0);
+    gfx.set_uniform_mat4x4("projection_mat", DEFAULT_SHADER, &flip_x_projection_mat);
+    gl::BindTexture(gl::TEXTURE_2D, CONTAINER_TEXTURE);
+    draw_two_containers(gfx, DEFAULT_SHADER, 1.0);
+    gl::BindTexture(gl::TEXTURE_2D, FLOOR_TEXTURE);
+    draw_floor(gfx, DEFAULT_SHADER, 10.0);
     // Draw Mirror obj (draw to rear-view mirror)
     let mut mirror_obj_model_mat = Matrix4x4::new_scaling(mirror_width, mirror_height, 0.0);
     let (mx, my, mz) = mirror_pos.get_components();
     mirror_obj_model_mat = Matrix4x4::new_translation(mx, my, mz) * mirror_obj_model_mat;
-    gfx.set_uniform_mat4x4("model_mat", 7, &mirror_obj_model_mat);
-    let tex_att_id = gfx.get_texture_attachment_gl_id("Mirror reflection texture attachment");
-    gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
+    gfx.set_uniform_mat4x4("model_mat", DEFAULT_SHADER, &mirror_obj_model_mat);
+    gl::BindTexture(gl::TEXTURE_2D, MIRROR_TEX_ATTACHMENT);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
     // Draw to texture
-    let fb_id = gfx.get_framebuffer_gl_id("Framebuffer 1");
-    gl::BindFramebuffer(gl::FRAMEBUFFER, fb_id);
+    gl::BindFramebuffer(gl::FRAMEBUFFER, POST_PROCESSING_FRAMEUFFER);
     gl::ClearColor(0.2, 0.2, 0.2, 1.0);
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-    gfx.set_uniform_mat4x4("view_mat", 7, &state.camera.look_at_matrix);
-    gfx.set_uniform_mat4x4("projection_mat", 7, projection_matrix);
-    gl::BindTexture(gl::TEXTURE_2D, gfx.textures[2]);
-    draw_two_containers(gfx, 7, 1.0);
-    gl::BindTexture(gl::TEXTURE_2D, gfx.textures[6]);
-    draw_floor(gfx, 7, 10.0);
+    gfx.set_uniform_mat4x4("view_mat", DEFAULT_SHADER, &state.camera.look_at_matrix);
+    gfx.set_uniform_mat4x4("projection_mat", DEFAULT_SHADER, projection_matrix);
+    gl::BindTexture(gl::TEXTURE_2D, CONTAINER_TEXTURE);
+    draw_two_containers(gfx, DEFAULT_SHADER, 1.0);
+    gl::BindTexture(gl::TEXTURE_2D, FLOOR_TEXTURE);
+    draw_floor(gfx, DEFAULT_SHADER, 10.0);
     // Draw Mirror obj (draw to texture)
-    gfx.set_uniform_mat4x4("model_mat", 7, &mirror_obj_model_mat);
-    gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
+    gfx.set_uniform_mat4x4("model_mat", DEFAULT_SHADER, &mirror_obj_model_mat);
+    gl::BindTexture(gl::TEXTURE_2D, MIRROR_TEX_ATTACHMENT);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
     {
         gl::Disable(gl::DEPTH_TEST);
-        gl::UseProgram(gfx.shader_programs[8]);
+        gl::UseProgram(gfx.shader_programs[POST_PROCESSING_SHADER]);
         let identity_mat = Matrix4x4::identity_matrix();
-        gfx.set_uniform_mat4x4("view_mat", 8, &identity_mat);
-        gfx.set_uniform_mat4x4("projection_mat", 8, &identity_mat);
+        gfx.set_uniform_mat4x4("view_mat", POST_PROCESSING_SHADER, &identity_mat);
+        gfx.set_uniform_mat4x4("projection_mat", POST_PROCESSING_SHADER, &identity_mat);
 
         // Draw to screen with post-processing
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::ClearColor(1.0, 1.0, 1.0, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
         let screen_quad_scaling = Matrix4x4::new_scaling(2.0, 2.0, 1.0);
-        gfx.set_uniform_mat4x4("model_mat", 8, &screen_quad_scaling);
-        gfx.set_uniform_1i("mode", 8, state.post_processing_option.int_code());
-        let tex_att_id = gfx.get_texture_attachment_gl_id("Texture Attachment 1");
-        gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
+        gfx.set_uniform_mat4x4("model_mat", POST_PROCESSING_SHADER, &screen_quad_scaling);
+        gfx.set_uniform_1i(
+            "mode",
+            POST_PROCESSING_SHADER,
+            state.post_processing_option.int_code(),
+        );
+        gl::BindTexture(gl::TEXTURE_2D, POST_PROCESSING_TEX_ATTACHMENT);
         gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
         // Draw rear-view mirror
         let mut model_mat = Matrix4x4::new_scaling(1.0, 0.5, 1.0);
         model_mat = Matrix4x4::new_translation(0.0, 0.7, 0.0) * model_mat;
-        gfx.set_uniform_mat4x4("model_mat", 8, &model_mat);
-        gfx.set_uniform_1i("mode", 8, REAR_VIEW_MIR_PP_OPTION.int_code());
-        let tex_att_id = gfx.get_texture_attachment_gl_id("Mirror Rear-view texture attachment");
-        gl::BindTexture(gl::TEXTURE_2D, tex_att_id);
+        gfx.set_uniform_mat4x4("model_mat", POST_PROCESSING_SHADER, &model_mat);
+        gfx.set_uniform_1i(
+            "mode",
+            POST_PROCESSING_SHADER,
+            REAR_VIEW_MIR_PP_OPTION.int_code(),
+        );
+        gl::BindTexture(gl::TEXTURE_2D, REAR_VIEW_MIR_TEX_ATTACHMENT);
         gl::DrawArrays(gl::TRIANGLES, 0, 6);
     }
 }
@@ -139,7 +158,7 @@ unsafe fn calculate_mirror_space_matrices(
     let cam_to_mir_dist = (camera_pos - mirror_pos) % mirror_norm;
     // closest point to cameras (real and mirror/"imaginary") on mirror plane
     let closest_point_to_cam = camera_pos - mirror_norm * cam_to_mir_dist;
-    // imaginary viewer from opposite (to real viewer) side of the mirror
+    // imaginary viewer from opposite side (to real viewer) of the mirror
     let mirror_camera_pos = 2.0 * closest_point_to_cam - camera_pos;
     let mirror_view_matrix =
         Matrix4x4::new_LookAt_matrix(mirror_camera_pos, mirror_norm, world_up_dir);
@@ -170,31 +189,50 @@ unsafe fn calculate_mirror_space_matrices(
 pub unsafe fn setup_framebuffers(gfx: &mut GlData, window_size: (i32, i32)) {
     gl::BindVertexArray(gfx.vertex_array_objects[2]);
     gl::ActiveTexture(gl::TEXTURE0);
+    DEFAULT_SHADER = gfx.get_shader_program_index("Blending shader");
+    POST_PROCESSING_SHADER = gfx.get_shader_program_index("Post-processing shader");
+    CONTAINER_TEXTURE = gfx.get_texture_gl_id("Container texture");
+    FLOOR_TEXTURE = gfx.get_texture_gl_id("Metal texture");
+
     println!();
+    let fb_name = "Framebuffer 1";
+    let tex_att_name = "Texture Attachment 1";
     create_framebuffer(
         gfx,
         window_size,
-        "Framebuffer 1",
-        "Texture Attachment 1",
+        fb_name,
+        tex_att_name,
         gl::NEAREST,
-        gl::NEAREST, /* Rustfmt force vertical formatting */
+        gl::NEAREST,
     );
+    POST_PROCESSING_FRAMEUFFER = gfx.get_framebuffer_gl_id(fb_name);
+    POST_PROCESSING_TEX_ATTACHMENT = gfx.get_texture_attachment_gl_id(tex_att_name);
+
+    let fb_name = "Mirror reflection framebuffer";
+    let tex_att_name = "Mirror reflection texture attachment";
     create_framebuffer(
         gfx,
         window_size,
-        "Mirror Rear-view framebuffer",
-        "Mirror Rear-view texture attachment",
-        gl::LINEAR,
-        gl::LINEAR,
+        fb_name,
+        tex_att_name,
+        gl::NEAREST,
+        gl::NEAREST,
     );
+    MIRROR_FRAMEBUFFER = gfx.get_framebuffer_gl_id(fb_name);
+    MIRROR_TEX_ATTACHMENT = gfx.get_texture_attachment_gl_id(tex_att_name);
+
+    let fb_name = "Mirror Rear-view framebuffer";
+    let tex_att_name = "Mirror Rear-view texture attachment";
     create_framebuffer(
         gfx,
         window_size,
-        "Mirror reflection framebuffer",
-        "Mirror reflection texture attachment",
-        gl::LINEAR,
-        gl::LINEAR,
+        fb_name,
+        tex_att_name,
+        gl::NEAREST,
+        gl::NEAREST,
     );
+    REAR_VIEW_MIR_FRAMEBUFFER = gfx.get_framebuffer_gl_id(fb_name);
+    REAR_VIEW_MIR_TEX_ATTACHMENT = gfx.get_texture_attachment_gl_id(tex_att_name);
 }
 
 #[allow(unused_imports)]
