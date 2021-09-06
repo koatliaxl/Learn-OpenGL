@@ -1,5 +1,6 @@
 mod camera;
 mod lighting;
+mod post_processing;
 mod shadows;
 mod textures;
 mod view;
@@ -9,6 +10,7 @@ use crate::state_and_cfg::{Config, State};
 use camera::*;
 use glfw::{Action, CursorMode, Key, Window, WindowEvent};
 use lighting::*;
+use post_processing::*;
 use shadows::*;
 use std::sync::mpsc::Receiver;
 use textures::*;
@@ -113,6 +115,12 @@ pub fn process_input(
                         Cubes => match key {
                             Key::Up | Key::Down | Key::Left | Key::Right => {
                                 change_textures(key, state);
+                            }
+                            _ => {}
+                        },
+                        FrameBuffers => match key {
+                            Key::Left | Key::Right => {
+                                change_post_processing_option(state, key);
                             }
                             _ => {}
                         },

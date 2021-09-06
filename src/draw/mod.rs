@@ -18,6 +18,7 @@ pub use adv_lighting::{
     Attenuation, GammaCorrection, LightProjectionMatrix, OmnidirectionalShadowMappingSetting,
     ShadowMappingSettings,
 };
+pub use framebuffers::PostProcessingOption;
 
 use self::cubes::draw_cubes;
 use self::{
@@ -33,7 +34,7 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-pub static DRAW: Draw = PointShadows;
+pub static DRAW: Draw = FrameBuffers;
 
 #[allow(unused)]
 pub enum Draw {
@@ -129,7 +130,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model, windo
                 gfx,
                 //&view_mat,
                 &projection_mat,
-                state.camera.clone(),
+                state,
             ),
             CubeMap => draw_cubemap_scene(
                 gfx,
@@ -164,12 +165,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             StencilTestingScene => setup_stencil_testing_scene(),
             BlendingScene => setup_blending_scene(),
             FaceCulling => setup_face_culling(),
-            FrameBuffers => setup_framebuffers(
-                gfx,
-                window.get_size(),
-                PostProcessingOption::CustomKernel2,
-                PostProcessingOption::GaussianBlur5x5,
-            ),
+            FrameBuffers => setup_framebuffers(gfx, window.get_size()),
             CubeMap => setup_cubemap_scene(gfx, model),
             UniformBufferObjectsUse => setup_ubo_use(gfx),
             GeometryShaderUse(opt) => setup_geometry_shd_use(gfx, model, opt),
