@@ -237,6 +237,12 @@ impl GlData {
         gl::Uniform1i(var_location, v);
     }
 
+    pub unsafe fn set_uniform_1b(&self, name: &str, shader_program_index: usize, v: bool) {
+        let var_location = self.get_var_loc(name, shader_program_index);
+        let v = if v { 1 } else { 0 };
+        gl::Uniform1ui(var_location, v);
+    }
+
     pub unsafe fn free_gl_resources(&mut self) {
         gl::DeleteVertexArrays(
             self.vertex_array_objects.len() as i32,

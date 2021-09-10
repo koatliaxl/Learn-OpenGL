@@ -1,10 +1,12 @@
 mod blinn_phong;
 mod gamma_correction;
+mod normal_mapping;
 mod point_shadows;
 mod shadow_mapping;
 
 pub use blinn_phong::*;
 pub use gamma_correction::*;
+pub use normal_mapping::*;
 pub use point_shadows::*;
 pub use shadow_mapping::*;
 

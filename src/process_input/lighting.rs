@@ -92,9 +92,6 @@ pub fn change_lighting(state: &mut State, key: Key) {
 
         Key::Minus => {
             state.shininess /= 2.0;
-            /*if state.shininess < 0.0 {
-                state.shininess = 0.0;
-            }*/
             println!("Shininess: {}", state.shininess);
         }
         Key::Equal => {

@@ -6,10 +6,12 @@ in vec3 World_Pos;
 out vec4 Frag_Color;
 
 uniform sampler2D Diffuse_Texture;
-uniform float Shininess;
+uniform sampler2D normal_map;
+uniform float Shininess = 64.0;
 uniform vec3 Viewer_Position;
 uniform bool Blinn_Phong_Lighting = true;
 uniform bool Gamma_Correction = false;
+uniform bool normal_mapping = false;
 
 struct PointLight {
     vec3 position;
@@ -29,7 +31,7 @@ uniform float attenuation_linear_term = 0.0;
 uniform float attenuation_quadratic_term = 0.0;
 
 uniform float ambient_strength = 0.05;
-uniform float specular_coef = 0.3;
+uniform float specular_factor = 0.3;
 
 const float gamma = 2.2;
 
@@ -39,7 +41,13 @@ vec4 calc_directional_light(DirectionalLight dl, vec3 normal, vec3 viewer_dir);
 void main() {
     vec3 viewer_dir = normalize(Viewer_Position - World_Pos);
     for (int i = 0; i < Light_Sources_Num; i++) {
-        Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir);
+        if (!normal_mapping) {
+            Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir);
+        } else {
+            vec3 frag_normal = vec3(texture(normal_map, Tex_Coords));
+            frag_normal = normalize(frag_normal * 2.0 - 1.0); // transform normal vector to range [-1,1]
+            Frag_Color += calc_point_light(Light_Sources[i], frag_normal, viewer_dir);
+        }
     }
     for (int i = 0; i < Light_Sources_Num; i++) {
         Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir);
@@ -62,9 +70,9 @@ vec4 calc_point_light(PointLight pl, vec3 normal, vec3 viewer_dir) {
     result += ambient_lighting(pl.color);
     result += diffuse_lighting(pl.color, light_dir, normal);
     if (Blinn_Phong_Lighting) {
-        result += blinn_phong_specular(pl.color, light_dir, normal, viewer_dir) * specular_coef;
+        result += blinn_phong_specular(pl.color, light_dir, normal, viewer_dir) * specular_factor;
     } else {
-        result += specular_lighting(pl.color, light_dir, normal, viewer_dir) * specular_coef;
+        result += specular_lighting(pl.color, light_dir, normal, viewer_dir) * specular_factor;
     }
     result *= attenuation(pl.position);
     return result;
@@ -76,9 +84,9 @@ vec4 calc_directional_light(DirectionalLight dl, vec3 normal, vec3 viewer_dir) {
     result += ambient_lighting(dl.color);
     result += diffuse_lighting(dl.color, light_dir, normal);
     if (Blinn_Phong_Lighting) {
-        result += blinn_phong_specular(dl.color, light_dir, normal, viewer_dir) * specular_coef;
+        result += blinn_phong_specular(dl.color, light_dir, normal, viewer_dir) * specular_factor;
     } else {
-        result += specular_lighting(dl.color, light_dir, normal, viewer_dir) * specular_coef;
+        result += specular_lighting(dl.color, light_dir, normal, viewer_dir) * specular_factor;
     }
     return result;
 }

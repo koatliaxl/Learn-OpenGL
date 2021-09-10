@@ -28,6 +28,7 @@ pub struct State {
     pub shadow_settings: ShadowMappingSettings,
     pub point_shadow_settings: OmnidirectionalShadowMappingSetting,
     pub post_processing_option: PostProcessingOption,
+    pub normal_mapping: bool,
 }
 
 impl State {
@@ -67,6 +68,7 @@ impl State {
                 disk_based_on_view_distance: false,
             },
             post_processing_option: PostProcessingOption::GaussianBlur3x3,
+            normal_mapping: true,
         }
     }
 }

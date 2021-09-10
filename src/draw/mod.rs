@@ -34,7 +34,9 @@ use mat_vec::Matrix4x4;
 use std::ffi::c_void;
 use Draw::*;
 
-pub static DRAW: Draw = FrameBuffers;
+pub const IDENTITY_MATRIX: Matrix4x4<f32> = Matrix4x4::<f32>::IDENTITY_MATRIX;
+
+pub static DRAW: Draw = NormalMapping;
 
 #[allow(unused)]
 pub enum Draw {
@@ -57,6 +59,7 @@ pub enum Draw {
     GammaCorrection,
     ShadowMapping,
     PointShadows,
+    NormalMapping,
 
     _AdvDataUse,
     TextureMinFilterTest,
@@ -149,6 +152,7 @@ pub fn draw(gfx: &GlData, state: &mut State, time: f32, model: &mut Model, windo
             GammaCorrection => draw_gamma_correction(gfx, state),
             ShadowMapping => draw_shadow_mapping(gfx, window, state),
             PointShadows => draw_point_shadows(gfx, window, state),
+            NormalMapping => draw_normal_mapping(gfx, state),
             _ => {}
         }
     }
@@ -179,6 +183,10 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             PointShadows => {
                 setup_point_shadows(gfx);
                 state.camera.speed = 25.0
+            }
+            NormalMapping => {
+                setup_normal_mapping(gfx);
+                state.shininess = 64.0
             }
 
             _AdvDataUse => adv_data_use(gfx),

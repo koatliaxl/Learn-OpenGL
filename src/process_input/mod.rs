@@ -124,6 +124,16 @@ pub fn process_input(
                             }
                             _ => {}
                         },
+                        NormalMapping => match key {
+                            Key::N => {
+                                state.normal_mapping = !state.normal_mapping;
+                                match state.normal_mapping {
+                                    true => println!("Normal Mapping enabled"),
+                                    false => println!("Normal Mapping disabled"),
+                                }
+                            }
+                            _ => {}
+                        },
                         _ => {}
                     }
                 }
