@@ -36,7 +36,7 @@ use Draw::*;
 
 pub const IDENTITY_MATRIX: Matrix4x4<f32> = Matrix4x4::<f32>::IDENTITY_MATRIX;
 
-pub static DRAW: Draw = NormalMapping;
+pub static DRAW: Draw = GeometryShaderUse(GeomShdUseOpt::Houses);
 
 #[allow(unused)]
 pub enum Draw {

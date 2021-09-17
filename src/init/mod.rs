@@ -9,6 +9,9 @@ pub use tex::init_textures;
 pub use var_loc::get_variable_locations;
 pub use var_loc::get_variable_locations_2;
 pub use vex::init_vertex_array_objects;
+pub use vex::{
+    CUBE2_INDICES, CUBE2_RAW_VERTICES_NUM, CUBE2_VERTICES, CUBE_FACETS, INDICES_PER_CUBE2_FACET,
+};
 
 use glfw::{
     fail_on_errors, Callback, Context, CursorMode, Error, Glfw, OpenGlProfileHint, Window,

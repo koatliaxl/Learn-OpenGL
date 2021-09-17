@@ -110,6 +110,7 @@ impl GlData {
             .insert(key.to_string(), self.array_buffers.len() - 1);
     }
 
+    #[allow(dead_code)]
     pub fn get_array_buffer_gl_id(&self, key: &str) -> GLuint {
         if let Some(index) = self.array_buffer_indexes.get(key) {
             self.array_buffers[*index]

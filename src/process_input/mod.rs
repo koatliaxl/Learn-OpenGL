@@ -132,6 +132,13 @@ pub fn process_input(
                                     false => println!("Normal Mapping disabled"),
                                 }
                             }
+                            Key::M => {
+                                state.tangent_space_correction = !state.tangent_space_correction;
+                                match state.tangent_space_correction {
+                                    true => println!("Tangent Space Correction enabled"),
+                                    false => println!("Tangent Space Correction disabled"),
+                                }
+                            }
                             _ => {}
                         },
                         _ => {}
