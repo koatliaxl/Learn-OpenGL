@@ -74,6 +74,20 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "PCF_Disk_Radius",
             ],
         ),
+        (
+            "Normal Mapping shader",
+            vec![
+                "model_mat",
+                "Light_Sources_Num",
+                "Viewer_Position",
+                "normal_map",
+                "normal_mapping",
+                "attenuation_linear_term",
+                "attenuation_quadratic_term",
+                "Shininess",
+                "generate_bitangents",
+            ],
+        ),
     ];
     let mut variables = variables
         .iter()
@@ -86,6 +100,7 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
         })
         .collect::<Vec<(String, Vec<String>)>>();
 
+    //todo refactor
     for (shd_name, vars) in &mut variables {
         match shd_name.as_str() {
             "Advanced Lighting shader" => {
@@ -103,6 +118,12 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
             "Depth cubemap shader" => {
                 for i in 0..6 {
                     vars.push(format!("light_space_matrices[{}]", i));
+                }
+            }
+            "Normal Mapping shader" => {
+                for i in 0..1 {
+                    vars.push(format!("light_positions[{}]", i));
+                    vars.push(format!("Light_Sources[{}].color", i));
                 }
             }
             _ => {}

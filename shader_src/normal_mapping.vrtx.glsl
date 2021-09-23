@@ -15,26 +15,33 @@ layout (std140) uniform Matrices {
 
 uniform vec3[10] light_positions;
 uniform int Light_Sources_Num = 0;
-uniform vec3 view_position;
+uniform vec3 Viewer_Position;
+uniform bool generate_bitangents = true;
 
 out vec3[10] TangentSpace_LightPositions;
 out vec3 TangentSpace_ViewerPos;
 out vec3 TangentSpace_FragPos;
 
-out vec3 Tex_Coords;
+out vec2 Tex_Coords;
 
 void main() {
     vec4 world_pos = model_mat * vec4(in_Position, 1.0);
     gl_Position = projection * view * world_pos;
+    Tex_Coords = in_Tex_Coords;
 
     mat3 normal_matrix = transpose(inverse(mat3(model_mat)));
     vec3 T = normalize(normal_matrix * in_Tangent);
     vec3 N = normalize(normal_matrix * in_Normal);
-    T = normalize(T - dot(T, N) * N);
-    vec3 B = cross(N, T);
+    //T = normalize(T - dot(T, N) * N);
+    vec3 B;
+    if (generate_bitangents) {
+        B = cross(N, T);
+    } else {
+        B = normalize(normal_matrix * in_Bitangent);
+    }
 
     mat3 TBN_matrix = transpose(mat3(T, B, N));
-    TangentSpace_ViewerPos = TBN_matrix * view_position;
+    TangentSpace_ViewerPos = TBN_matrix * Viewer_Position;
     TangentSpace_FragPos = TBN_matrix * world_pos.xyz;
     for (int i = 0; i < Light_Sources_Num; i++) {
         TangentSpace_LightPositions[i] = TBN_matrix * light_positions[i];

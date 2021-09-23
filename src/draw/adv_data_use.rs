@@ -24,20 +24,21 @@ pub unsafe fn adv_data_use(gfx: &GlData) {
     print_gl_buffer(COPY_READ_BUFFER, 3 * 8, 3);
 }
 
-unsafe fn print_gl_buffer(target: gl::types::GLenum, size: usize, format: usize) {
+//todo generic
+pub unsafe fn print_gl_buffer(target: gl::types::GLenum, size: usize, format: usize) {
     #[allow(unused_imports)]
     use gl::{READ_ONLY, READ_WRITE, WRITE_ONLY};
     let ptr = gl::MapBuffer(target, READ_ONLY);
-    let mut arr = [0_f32; 200];
-    (ptr as *const f32).copy_to(arr.as_mut_ptr(), size);
+    let mut vec = vec![0.0; size];
+    (ptr as *const f32).copy_to(vec.as_mut_ptr(), size);
     let ret = gl::UnmapBuffer(target);
     if ret == gl::TRUE {
         println!("\nGL data was mapped successfully");
     } else {
         println!("\nGL data mapping was unsuccessful");
     }
-    for i in 0..size {
-        print!("{}, ", arr[i]);
+    for i in 0..vec.len() {
+        print!("{}, ", vec[i]);
         if format != 0 && (i + 1) % format == 0 {
             println!();
         }

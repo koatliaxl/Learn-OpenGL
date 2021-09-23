@@ -16,6 +16,8 @@ uniform bool Blinn_Phong_Lighting = true;
 uniform bool Gamma_Correction = false;
 uniform bool normal_mapping = false;
 
+uniform bool tangent_space_correction = true;
+
 struct PointLight {
     vec3 position;
     vec3 color;
@@ -33,7 +35,7 @@ uniform float Shininess = 64.0;
 uniform float attenuation_constant_term = 1.0;
 uniform float attenuation_linear_term = 0.0;
 uniform float attenuation_quadratic_term = 0.0;
-uniform float ambient_strength = 0.05;
+uniform float ambient_strength = 0.2;
 uniform float specular_factor = 0.3;
 
 const float gamma = 2.2;
@@ -49,15 +51,15 @@ void main() {
         } else {
             vec3 frag_normal = vec3(texture(normal_map, Tex_Coords));
             frag_normal = normalize(frag_normal * 2.0 - 1.0); // transform normal vector to range [-1,1]
-            PointLight ls = PointLight(TangentSpace_LightPositions[i], Light_Sources[i].color);
-            vec3 tan_space_view_dir = normalize(TangentSpace_ViewerPos - TangentSpace_FragPos);
-            Frag_Color += calc_point_light(ls, frag_normal, tan_space_view_dir, TangentSpace_FragPos);
+            if (tangent_space_correction) {
+                PointLight ls = PointLight(TangentSpace_LightPositions[i], Light_Sources[i].color);
+                vec3 tan_space_view_dir = normalize(TangentSpace_ViewerPos - TangentSpace_FragPos);
+                Frag_Color += calc_point_light(ls, frag_normal, tan_space_view_dir, TangentSpace_FragPos);
+            } else {
+                Frag_Color += calc_point_light(Light_Sources[i], frag_normal, viewer_dir, World_Pos);
+            }
         }
     }
-    /*for (int i = 0; i < Light_Sources_Num; i++) {
-        Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir);
-    }*/
-    // Gamma Correction:
     if (Gamma_Correction) {
         Frag_Color.rgb = pow(Frag_Color.rgb, vec3(1.0 / gamma));
     }
@@ -118,7 +120,7 @@ vec4 blinn_phong_specular(vec3 light, vec3 light_dir, vec3 normal, vec3 viewer_d
 }
 
 float attenuation(vec3 source_pos, vec3 frag_pos) {
-    float distance = length(source_pos - World_Pos);
+    float distance = length(source_pos - frag_pos);
     return 1.0 / (attenuation_constant_term
         + attenuation_linear_term * distance
         + attenuation_quadratic_term * distance * distance);

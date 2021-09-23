@@ -139,6 +139,16 @@ pub fn process_input(
                                     false => println!("Tangent Space Correction disabled"),
                                 }
                             }
+                            Key::I => {
+                                state.in_shader_bitangent_generation =
+                                    !state.in_shader_bitangent_generation;
+                                match state.in_shader_bitangent_generation {
+                                    true => println!("In-shader bitangents generation"),
+                                    false => {
+                                        println!("Pre-generation of bitangents")
+                                    }
+                                }
+                            }
                             _ => {}
                         },
                         _ => {}

@@ -181,6 +181,11 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
             FRAGMENT_SHADER,
             "Point Shadows fragment shader",
         );
+        let normal_mapping_vert = gen_shader_from_file(
+            "shader_src/normal_mapping.vrtx.glsl",
+            VERTEX_SHADER,
+            "Normal Mapping vertex shader",
+        );
 
         let shader_programs = [
             (vertex_shader_id, fragment_shader_id, "Shader 1"),
@@ -247,6 +252,11 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
                 "Shadow Mapping shader",
             ),
             (ub_vertex_shd, point_shadows_frag, "Point Shadows shader"),
+            (
+                normal_mapping_vert,
+                adv_lighting_frag,
+                "Normal Mapping shader",
+            ),
         ];
         println!();
         for (vertex_shd, frag_shd, shd_program_name) in &shader_programs {
@@ -335,5 +345,6 @@ pub fn init_shader_programs(gl_data: &mut GlData) {
         gl::DeleteShader(depth_cubemap_geom);
         gl::DeleteShader(depth_cubemap_frag);
         gl::DeleteShader(point_shadows_frag);
+        gl::DeleteShader(normal_mapping_vert);
     }
 }

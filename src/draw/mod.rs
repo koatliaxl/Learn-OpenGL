@@ -36,7 +36,7 @@ use Draw::*;
 
 pub const IDENTITY_MATRIX: Matrix4x4<f32> = Matrix4x4::<f32>::IDENTITY_MATRIX;
 
-pub static DRAW: Draw = GeometryShaderUse(GeomShdUseOpt::Houses);
+pub static DRAW: Draw = NormalMapping;
 
 #[allow(unused)]
 pub enum Draw {
@@ -186,7 +186,8 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             }
             NormalMapping => {
                 setup_normal_mapping(gfx);
-                state.shininess = 64.0
+                state.shininess = 64.0;
+                state.normal_mapping = true;
             }
 
             _AdvDataUse => adv_data_use(gfx),
@@ -224,6 +225,7 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         bind_uniform_block("Matrices", "Shadow Mapping shader", 0, gfx);
         bind_uniform_block("Matrices", "Depth cubemap shader", 0, gfx);
         bind_uniform_block("Matrices", "Point Shadows shader", 0, gfx);
+        bind_uniform_block("Matrices", "Normal Mapping shader", 0, gfx);
     }
 }
 

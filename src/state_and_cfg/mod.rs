@@ -30,6 +30,7 @@ pub struct State {
     pub post_processing_option: PostProcessingOption,
     pub normal_mapping: bool,
     pub tangent_space_correction: bool,
+    pub in_shader_bitangent_generation: bool,
 }
 
 impl State {
@@ -71,6 +72,7 @@ impl State {
             post_processing_option: PostProcessingOption::GaussianBlur3x3,
             normal_mapping: true,
             tangent_space_correction: true,
+            in_shader_bitangent_generation: true,
         }
     }
 }
