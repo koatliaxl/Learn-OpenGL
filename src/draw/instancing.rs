@@ -24,8 +24,8 @@ static mut ASTEROID_AMOUNT: u32 = 50000;
 pub unsafe fn instancing_draw(gfx: &GlData) {
     if let Containers = DRAW_OPTION {
         gl::BindVertexArray(gfx.vertex_array_objects[1]);
-        let arr_buf = gfx.get_array_buffer_gl_id("Offsets");
-        gl::BindBuffer(ARRAY_BUFFER, arr_buf);
+        /*let arr_buf = gfx.get_array_buffer_gl_id("Offsets");
+        gl::BindBuffer(ARRAY_BUFFER, arr_buf);*/
         let shd_idx = gfx.get_shader_program_index("Instancing shader");
         gl::UseProgram(gfx.shader_programs[shd_idx]);
         let model_mat = Matrix4x4::identity_matrix();
@@ -51,8 +51,8 @@ pub unsafe fn instancing_draw(gfx: &GlData) {
         let shd_idx = gfx.get_shader_program_index("Instancing shader");
         gl::UseProgram(gfx.shader_programs[shd_idx]);
         if let Asteroids = DRAW_OPTION {
-            let ins_arr = gfx.get_array_buffer_gl_id("Asteroid Model Matrices");
-            gl::BindBuffer(ARRAY_BUFFER, ins_arr);
+            /*let ins_arr = gfx.get_array_buffer_gl_id("Asteroid Model Matrices");
+            gl::BindBuffer(ARRAY_BUFFER, ins_arr);*/
             MODELS[1].instanced_draw(ASTEROID_AMOUNT as i32);
         }
         if let AsteroidsNonInstanced = DRAW_OPTION {

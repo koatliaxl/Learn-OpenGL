@@ -110,6 +110,7 @@ impl GlData {
             .insert(key.to_string(), self.array_buffers.len() - 1);
     }
 
+    #[allow(dead_code)]
     pub fn get_array_buffer_gl_id(&self, key: &str) -> GLuint {
         if let Some(index) = self.array_buffer_indexes.get(key) {
             self.array_buffers[*index]
@@ -235,6 +236,12 @@ impl GlData {
     pub unsafe fn set_uniform_1i(&self, name: &str, shader_program_index: usize, v: i32) {
         let var_location = self.get_var_loc(name, shader_program_index);
         gl::Uniform1i(var_location, v);
+    }
+
+    pub unsafe fn set_uniform_1b(&self, name: &str, shader_program_index: usize, v: bool) {
+        let var_location = self.get_var_loc(name, shader_program_index);
+        let v = if v { 1 } else { 0 };
+        gl::Uniform1ui(var_location, v);
     }
 
     pub unsafe fn free_gl_resources(&mut self) {

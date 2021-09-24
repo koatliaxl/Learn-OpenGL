@@ -15,11 +15,9 @@ use self::process_input::process_input;
 use self::state_and_cfg::*;
 use glfw::Context;
 use opengl_learn::Model;
-//use std::ffi::c_void;
 use std::time::Instant;
 
-const _NULL: *const i32 = std::ptr::null();
-//const C_VOID_NULL: *const c_void = std::ptr::null();
+//const _NULL: *const i32 = std::ptr::null();
 
 fn main() {
     let (mut glfw, mut window, events) = init_glfw();

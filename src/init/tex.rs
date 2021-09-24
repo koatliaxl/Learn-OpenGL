@@ -119,6 +119,22 @@ pub fn init_textures(gl_data: &mut GlData) {
                    LINEAR_MIPMAP_LINEAR,
                    LINEAR,
                ),*/
+            (
+                "assets/brickwall.jpg",
+                "Brick wall",
+                REPEAT,
+                REPEAT,
+                LINEAR_MIPMAP_LINEAR,
+                LINEAR,
+            ),
+            (
+                "assets/brickwall_normal.jpg",
+                "Brick wall normal",
+                REPEAT,
+                REPEAT,
+                LINEAR_MIPMAP_LINEAR,
+                LINEAR,
+            ),
         ];
         for (path, name, wrap_s, wrap_t, min_filter, mag_filter) in &textures_to_load {
             let tex_gl_id = load_texture(path, *wrap_s, *wrap_t, *min_filter, *mag_filter);

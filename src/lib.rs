@@ -10,6 +10,8 @@ use crate::gl::types::{GLfloat, GLuint};
 pub const SIZE_OF_GL_FLOAT: isize = std::mem::size_of::<GLfloat>() as isize;
 pub const SIZE_OF_GL_UNSIGNED_INT: isize = std::mem::size_of::<GLuint>() as isize;
 
+pub const USIZE_OF_GL_FLOAT: usize = std::mem::size_of::<GLfloat>();
+
 pub unsafe fn check_framebuffer_gl_status() -> &'static str {
     match gl::CheckFramebufferStatus(gl::FRAMEBUFFER) {
         gl::FRAMEBUFFER_COMPLETE => "COMPLETE",

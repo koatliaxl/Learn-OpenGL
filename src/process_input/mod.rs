@@ -124,6 +124,36 @@ pub fn process_input(
                             }
                             _ => {}
                         },
+                        NormalMapping => match key {
+                            Key::N => {
+                                let enabled = &mut state.normal_mapping_settings.enabled;
+                                *enabled = !*enabled;
+                                match enabled {
+                                    true => println!("Normal Mapping enabled"),
+                                    false => println!("Normal Mapping disabled"),
+                                }
+                            }
+                            Key::I => {
+                                let in_shader_bitan_generation = &mut state
+                                    .normal_mapping_settings
+                                    .in_shader_bitangent_generation;
+                                *in_shader_bitan_generation = !*in_shader_bitan_generation;
+                                match in_shader_bitan_generation {
+                                    true => println!("In-shader bitangents generation"),
+                                    false => println!("Use pre-generated bitangents"),
+                                }
+                            }
+                            Key::O => {
+                                let re_orthonormalize_tans =
+                                    &mut state.normal_mapping_settings.re_orthonormalize_tangents;
+                                *re_orthonormalize_tans = !*re_orthonormalize_tans;
+                                match re_orthonormalize_tans {
+                                    true => println!("Re-orthonormalize tangents: enabled"),
+                                    false => println!("Re-orthonormalize tangents: disabled"),
+                                }
+                            }
+                            _ => {}
+                        },
                         _ => {}
                     }
                 }

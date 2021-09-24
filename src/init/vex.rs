@@ -1,6 +1,6 @@
 use crate::gl;
 use crate::gl::types::{GLfloat, GLint, GLuint};
-use ::opengl_learn::{SIZE_OF_GL_FLOAT, SIZE_OF_GL_UNSIGNED_INT};
+use ::opengl_learn::{SIZE_OF_GL_FLOAT, SIZE_OF_GL_UNSIGNED_INT, USIZE_OF_GL_FLOAT};
 use std::ffi::c_void;
 
 pub fn init_vertex_array_objects() -> (Vec<u32>, Vec<u32>) {
@@ -31,15 +31,14 @@ pub fn init_vertex_array_objects() -> (Vec<u32>, Vec<u32>) {
     }
 }
 
-const USIZE_OF_GL_FLOAT: usize = std::mem::size_of::<GLfloat>();
+const POS_ATTRIB_LEN: GLint = 3;
+const NORMAL_ATTRIB_LEN: GLint = 3;
+const TEX_COORD_ATTRIB_LEN: GLint = 2;
+const COLOR_ATTRIB_LEN: GLint = 3;
 
-const UB_POS_ATTRIB_LEN: usize = 3;
-const UB_NORMAL_ATTRIB_LEN: usize = 3;
-const UB_TEX_COORD_ATTRIB_LEN: usize = 2;
-const UB_COLOR_ATTRIB_LEN: usize = 3;
-const UB_VERTEX_LEN: usize =
-    UB_POS_ATTRIB_LEN + UB_NORMAL_ATTRIB_LEN + UB_TEX_COORD_ATTRIB_LEN + UB_COLOR_ATTRIB_LEN;
-const UB_STRIDE: usize = UB_VERTEX_LEN * USIZE_OF_GL_FLOAT;
+pub const UB_VERTEX_LEN: usize =
+    (POS_ATTRIB_LEN + NORMAL_ATTRIB_LEN + TEX_COORD_ATTRIB_LEN + COLOR_ATTRIB_LEN) as usize;
+pub const UB_STRIDE: GLint = (UB_VERTEX_LEN * USIZE_OF_GL_FLOAT) as i32;
 
 unsafe fn points() -> (u32, u32) {
     const POINTS_NUM: usize = 4;
@@ -55,8 +54,8 @@ unsafe fn points() -> (u32, u32) {
         vertices_raw[UB_VERTEX_LEN * i + 0] = x;
         vertices_raw[UB_VERTEX_LEN * i + 1] = y;
         vertices_raw[UB_VERTEX_LEN * i + 2] = z;
-        let offset =
-            UB_VERTEX_LEN * i + UB_POS_ATTRIB_LEN + UB_NORMAL_ATTRIB_LEN + UB_TEX_COORD_ATTRIB_LEN;
+        let offset = UB_VERTEX_LEN * i
+            + (POS_ATTRIB_LEN + NORMAL_ATTRIB_LEN + TEX_COORD_ATTRIB_LEN) as usize;
         vertices_raw[offset + 0] = r;
         vertices_raw[offset + 1] = g;
         vertices_raw[offset + 2] = b;
@@ -78,7 +77,7 @@ unsafe fn points() -> (u32, u32) {
 
     gl::VertexAttribPointer(
         0,
-        UB_POS_ATTRIB_LEN as _,
+        POS_ATTRIB_LEN as _,
         gl::FLOAT,
         gl::FALSE,
         UB_STRIDE as _,
@@ -87,11 +86,11 @@ unsafe fn points() -> (u32, u32) {
     gl::EnableVertexAttribArray(0);
     gl::VertexAttribPointer(
         3,
-        UB_COLOR_ATTRIB_LEN as _,
+        COLOR_ATTRIB_LEN as _,
         gl::FLOAT,
         gl::FALSE,
         UB_STRIDE as _,
-        ((UB_POS_ATTRIB_LEN + UB_NORMAL_ATTRIB_LEN + UB_TEX_COORD_ATTRIB_LEN) * USIZE_OF_GL_FLOAT)
+        ((POS_ATTRIB_LEN + NORMAL_ATTRIB_LEN + TEX_COORD_ATTRIB_LEN) * USIZE_OF_GL_FLOAT as i32)
             as *const c_void,
     );
     gl::EnableVertexAttribArray(3);
@@ -99,8 +98,10 @@ unsafe fn points() -> (u32, u32) {
     (vertex_array_obj_id, vertex_buf_obj_id)
 }
 
+pub const CUBE_FACETS: usize = 6;
+pub const INDICES_PER_CUBE_FACET: usize = 6;
+
 unsafe fn skybox() -> (u32, u32, u32) {
-    const POS_ATTRIB_LEN: GLint = 3;
     const VERTEX_LEN: GLint = POS_ATTRIB_LEN;
     const VERTICES_NUM: usize = 8;
     let vertices: [(GLfloat, GLfloat, GLfloat); VERTICES_NUM] = [
@@ -176,55 +177,51 @@ unsafe fn skybox() -> (u32, u32, u32) {
     (vertex_array_obj_id, vertex_buf_obj_id, element_buf_obj_id)
 }
 
+pub static CUBE2_VERTICES: [((GLfloat, GLfloat, GLfloat), (GLfloat, GLfloat)); 12] = [
+    ((0.5, 0.5, -0.5), (1.0, 1.0)),
+    ((0.5, -0.5, -0.5), (1.0, 0.0)),
+    ((-0.5, -0.5, -0.5), (0.0, 0.0)),
+    ((-0.5, 0.5, -0.5), (0.0, 1.0)),
+    ((0.5, 0.5, 0.5), (0.0, 1.0)),
+    ((0.5, -0.5, 0.5), (0.0, 0.0)),
+    ((-0.5, -0.5, 0.5), (1.0, 0.0)),
+    ((-0.5, 0.5, 0.5), (1.0, 1.0)),
+    // Alternative vertices with different texture coord
+    ((-0.5, 0.5, 0.5), (0.0, 0.0)),
+    ((0.5, -0.5, 0.5), (1.0, 1.0)),
+    ((0.5, 0.5, 0.5), (1.0, 0.0)),
+    ((-0.5, -0.5, 0.5), (0.0, 1.0)),
+];
+// Ordering applicable for face culling
+pub static CUBE2_INDICES: [[GLuint; INDICES_PER_CUBE_FACET]; CUBE_FACETS] = [
+    [0, 1, 3, 1, 2, 3],
+    [4, 1, 0, 1, 4, 5],
+    [0, 3, 10, 8, 10, 3],
+    [7, 3, 2, 2, 6, 7],
+    [9, 2, 1, 2, 9, 11],
+    [7, 5, 4, 7, 6, 5],
+];
+pub const CUBE2_NORMALS: [(f32, f32, f32); CUBE_FACETS] = [
+    (0.0, 0.0, -1.0),
+    (1.0, 0.0, 0.0),
+    (0.0, 1.0, 0.0),
+    (-1.0, 0.0, 0.0),
+    (0.0, -1.0, 0.0),
+    (0.0, 0.0, 1.0),
+];
+pub const CUBE2_RAW_VERTICES_NUM: usize = 36 /*CUBE_FACETS * INDICES_PER_CUBE2_FACET*/;
+
 unsafe fn cube_2() -> (u32, u32) {
-    const POS_ATTRIB_LEN: GLint = 3;
-    const NORMAL_ATTRIB_LEN: GLint = 3;
-    const TEX_COORD_ATTRIB_LEN: GLint = 2;
     const VERTEX_LEN: GLint = POS_ATTRIB_LEN + NORMAL_ATTRIB_LEN + TEX_COORD_ATTRIB_LEN;
-    const RAW_VERTICES_NUM: usize = 36;
-    let vertices: [((GLfloat, GLfloat, GLfloat), (GLfloat, GLfloat)); 12] = [
-        ((0.5, 0.5, -0.5), (1.0, 1.0)),
-        ((0.5, -0.5, -0.5), (1.0, 0.0)),
-        ((-0.5, -0.5, -0.5), (0.0, 0.0)),
-        ((-0.5, 0.5, -0.5), (0.0, 1.0)),
-        ((0.5, 0.5, 0.5), (0.0, 1.0)),
-        ((0.5, -0.5, 0.5), (0.0, 0.0)),
-        ((-0.5, -0.5, 0.5), (1.0, 0.0)),
-        ((-0.5, 0.5, 0.5), (1.0, 1.0)),
-        // Alternative vertices with different texture coord
-        ((-0.5, 0.5, 0.5), (0.0, 0.0)),
-        ((0.5, -0.5, 0.5), (1.0, 1.0)),
-        ((0.5, 0.5, 0.5), (1.0, 0.0)),
-        ((-0.5, -0.5, 0.5), (0.0, 1.0)),
-    ];
-    const FACETS: usize = 6;
-    const FACET_INDICES: usize = 6;
-    // Ordering applicable for face culling
-    let indices: [[GLuint; FACET_INDICES]; FACETS] = [
-        [0, 1, 3, 1, 2, 3],
-        [4, 1, 0, 1, 4, 5],
-        [0, 3, 10, 8, 10, 3],
-        [7, 3, 2, 2, 6, 7],
-        [9, 2, 1, 2, 9, 11],
-        [7, 5, 4, 7, 6, 5],
-    ];
-    let normals = [
-        (0.0, 0.0, -1.0),
-        (1.0, 0.0, 0.0),
-        (0.0, 1.0, 0.0),
-        (-1.0, 0.0, 0.0),
-        (0.0, -1.0, 0.0),
-        (0.0, 0.0, 1.0),
-    ];
-    let mut vertices_raw = [0.0; VERTEX_LEN as usize * RAW_VERTICES_NUM];
-    for n in 0..FACETS {
-        for i in 0..FACET_INDICES {
-            let ((x, y, z), (s, t)) = vertices[indices[n][i] as usize];
-            let j = (n * FACET_INDICES + i) * VERTEX_LEN as usize;
+    let mut vertices_raw = [0.0; VERTEX_LEN as usize * CUBE2_RAW_VERTICES_NUM];
+    for n in 0..CUBE_FACETS {
+        for i in 0..INDICES_PER_CUBE_FACET {
+            let ((x, y, z), (s, t)) = CUBE2_VERTICES[CUBE2_INDICES[n][i] as usize];
+            let j = (n * INDICES_PER_CUBE_FACET + i) * VERTEX_LEN as usize;
             vertices_raw[j + 0] = x;
             vertices_raw[j + 1] = y;
             vertices_raw[j + 2] = z;
-            let (nx, ny, nz) = normals[n];
+            let (nx, ny, nz) = CUBE2_NORMALS[n];
             vertices_raw[j + 3] = nx;
             vertices_raw[j + 4] = ny;
             vertices_raw[j + 5] = nz;
@@ -280,9 +277,6 @@ unsafe fn cube_2() -> (u32, u32) {
 }
 
 unsafe fn cube() -> (u32, u32, u32) {
-    const POS_ATTRIB_LEN: GLint = 3;
-    const COLOR_ATTRIB_LEN: GLint = 3;
-    const TEX_COORD_ATTRIB_LEN: GLint = 2;
     const VERTEX_LEN: GLint = POS_ATTRIB_LEN + COLOR_ATTRIB_LEN + TEX_COORD_ATTRIB_LEN;
     const VERTICES_NUM: usize = 12;
     let vertices: [(
