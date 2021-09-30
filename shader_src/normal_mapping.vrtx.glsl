@@ -39,6 +39,7 @@ void main() {
     vec3 B;
     if (bitangent_generation) {
         B = cross(N, T);
+        //B = cross(T, N);
     } else {
         B = normalize(normal_matrix * in_Bitangent);
     }

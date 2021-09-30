@@ -50,6 +50,8 @@ void main() {
             Frag_Color += calc_point_light(Light_Sources[i], Normal, viewer_dir, World_Pos);
         } else {
             vec3 frag_normal = vec3(texture(normal_map, Tex_Coords));
+            //todo reflect y aroun z-axis
+            //frag_normal = vec3(frag_normal.x, frag_normal.y, frag_normal.z);
             frag_normal = normalize(frag_normal * 2.0 - 1.0); // transform normal vector to range [-1,1]
             PointLight ls = PointLight(TangentSpace_LightPositions[i], Light_Sources[i].color);
             vec3 tan_space_view_dir = normalize(TangentSpace_ViewerPos - TangentSpace_FragPos);
