@@ -3,8 +3,8 @@ pub use gl_data::*;
 
 use crate::camera::Camera;
 use crate::draw::{
-    Attenuation, GammaCorrection, LightProjectionMatrix, OmnidirectionalShadowMappingSetting,
-    PostProcessingOption, ShadowMappingSettings,
+    Attenuation, GammaCorrection, LightProjectionMatrix, NormalMappingSettings,
+    OmnidirectionalShadowMappingSetting, PostProcessingOption, ShadowMappingSettings,
 };
 use opengl_learn::gl::types::GLfloat;
 use std::time::{Duration, Instant};
@@ -28,9 +28,7 @@ pub struct State {
     pub shadow_settings: ShadowMappingSettings,
     pub point_shadow_settings: OmnidirectionalShadowMappingSetting,
     pub post_processing_option: PostProcessingOption,
-    pub normal_mapping: bool,
-    pub tangent_space_correction: bool,
-    pub in_shader_bitangent_generation: bool,
+    pub normal_mapping_settings: NormalMappingSettings,
 }
 
 impl State {
@@ -70,9 +68,11 @@ impl State {
                 disk_based_on_view_distance: false,
             },
             post_processing_option: PostProcessingOption::GaussianBlur3x3,
-            normal_mapping: true,
-            tangent_space_correction: true,
-            in_shader_bitangent_generation: true,
+            normal_mapping_settings: NormalMappingSettings {
+                enabled: false,
+                in_shader_bitangent_generation: false,
+                re_orthonormalize_tangents: false,
+            },
         }
     }
 }

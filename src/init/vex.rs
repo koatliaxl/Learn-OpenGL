@@ -201,18 +201,18 @@ pub static CUBE2_INDICES: [[GLuint; INDICES_PER_CUBE_FACET]; CUBE_FACETS] = [
     [9, 2, 1, 2, 9, 11],
     [7, 5, 4, 7, 6, 5],
 ];
+pub const CUBE2_NORMALS: [(f32, f32, f32); CUBE_FACETS] = [
+    (0.0, 0.0, -1.0),
+    (1.0, 0.0, 0.0),
+    (0.0, 1.0, 0.0),
+    (-1.0, 0.0, 0.0),
+    (0.0, -1.0, 0.0),
+    (0.0, 0.0, 1.0),
+];
 pub const CUBE2_RAW_VERTICES_NUM: usize = 36 /*CUBE_FACETS * INDICES_PER_CUBE2_FACET*/;
 
 unsafe fn cube_2() -> (u32, u32) {
     const VERTEX_LEN: GLint = POS_ATTRIB_LEN + NORMAL_ATTRIB_LEN + TEX_COORD_ATTRIB_LEN;
-    let normals = [
-        (0.0, 0.0, -1.0),
-        (1.0, 0.0, 0.0),
-        (0.0, 1.0, 0.0),
-        (-1.0, 0.0, 0.0),
-        (0.0, -1.0, 0.0),
-        (0.0, 0.0, 1.0),
-    ];
     let mut vertices_raw = [0.0; VERTEX_LEN as usize * CUBE2_RAW_VERTICES_NUM];
     for n in 0..CUBE_FACETS {
         for i in 0..INDICES_PER_CUBE_FACET {
@@ -221,7 +221,7 @@ unsafe fn cube_2() -> (u32, u32) {
             vertices_raw[j + 0] = x;
             vertices_raw[j + 1] = y;
             vertices_raw[j + 2] = z;
-            let (nx, ny, nz) = normals[n];
+            let (nx, ny, nz) = CUBE2_NORMALS[n];
             vertices_raw[j + 3] = nx;
             vertices_raw[j + 4] = ny;
             vertices_raw[j + 5] = nz;

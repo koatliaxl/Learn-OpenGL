@@ -126,27 +126,30 @@ pub fn process_input(
                         },
                         NormalMapping => match key {
                             Key::N => {
-                                state.normal_mapping = !state.normal_mapping;
-                                match state.normal_mapping {
+                                let enabled = &mut state.normal_mapping_settings.enabled;
+                                *enabled = !*enabled;
+                                match enabled {
                                     true => println!("Normal Mapping enabled"),
                                     false => println!("Normal Mapping disabled"),
                                 }
                             }
-                            Key::M => {
-                                state.tangent_space_correction = !state.tangent_space_correction;
-                                match state.tangent_space_correction {
-                                    true => println!("Tangent Space Correction enabled"),
-                                    false => println!("Tangent Space Correction disabled"),
+                            Key::I => {
+                                let in_shader_bitan_generation = &mut state
+                                    .normal_mapping_settings
+                                    .in_shader_bitangent_generation;
+                                *in_shader_bitan_generation = !*in_shader_bitan_generation;
+                                match in_shader_bitan_generation {
+                                    true => println!("In-shader bitangents generation"),
+                                    false => println!("Use pre-generated bitangents"),
                                 }
                             }
-                            Key::I => {
-                                state.in_shader_bitangent_generation =
-                                    !state.in_shader_bitangent_generation;
-                                match state.in_shader_bitangent_generation {
-                                    true => println!("In-shader bitangents generation"),
-                                    false => {
-                                        println!("Pre-generation of bitangents")
-                                    }
+                            Key::O => {
+                                let re_orthonormalize_tans =
+                                    &mut state.normal_mapping_settings.re_orthonormalize_tangents;
+                                *re_orthonormalize_tans = !*re_orthonormalize_tans;
+                                match re_orthonormalize_tans {
+                                    true => println!("Re-orthonormalize tangents: enabled"),
+                                    false => println!("Re-orthonormalize tangents: disabled"),
                                 }
                             }
                             _ => {}

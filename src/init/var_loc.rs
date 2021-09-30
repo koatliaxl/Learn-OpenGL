@@ -85,7 +85,8 @@ pub fn get_variable_locations_2(gl_data: &mut GlData) {
                 "attenuation_linear_term",
                 "attenuation_quadratic_term",
                 "Shininess",
-                "generate_bitangents",
+                "bitangent_generation",
+                "re_orthonormalize_tangents",
             ],
         ),
     ];

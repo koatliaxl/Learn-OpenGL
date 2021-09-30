@@ -15,8 +15,8 @@ mod stencil_testing;
 mod ubo_use;
 
 pub use adv_lighting::{
-    Attenuation, GammaCorrection, LightProjectionMatrix, OmnidirectionalShadowMappingSetting,
-    ShadowMappingSettings,
+    Attenuation, GammaCorrection, LightProjectionMatrix, NormalMappingSettings,
+    OmnidirectionalShadowMappingSetting, ShadowMappingSettings,
 };
 pub use framebuffers::PostProcessingOption;
 
@@ -36,7 +36,7 @@ use Draw::*;
 
 pub const IDENTITY_MATRIX: Matrix4x4<f32> = Matrix4x4::<f32>::IDENTITY_MATRIX;
 
-pub static DRAW: Draw = NormalMapping;
+pub static DRAW: Draw = GeometryShaderUse(Houses);
 
 #[allow(unused)]
 pub enum Draw {
@@ -179,15 +179,15 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             }
             BlinnPhongLighting => setup_blinn_phong_lighting(gfx),
             GammaCorrection => setup_gamma_correction(gfx, state),
-            ShadowMapping => setup_shadow_mapping(gfx, false),
+            ShadowMapping => setup_shadow_mapping(gfx, true),
             PointShadows => {
                 setup_point_shadows(gfx);
                 state.camera.speed = 25.0
             }
             NormalMapping => {
-                setup_normal_mapping(gfx);
+                setup_normal_mapping(gfx, true);
                 state.shininess = 64.0;
-                state.normal_mapping = true;
+                state.normal_mapping_settings.enabled = true;
             }
 
             _AdvDataUse => adv_data_use(gfx),
