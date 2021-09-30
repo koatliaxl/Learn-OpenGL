@@ -45,20 +45,9 @@ pub unsafe fn draw_geometry_shd_use(
 }
 
 pub unsafe fn setup_geometry_shd_use(gfx: &GlData, model: &mut Model, opt: GeomShdUseOpt) {
-    let shd_idx = match opt {
-        Houses => gfx.get_shader_program_index("Geometry Shader Use 1"),
-        ExplodeEffect => gfx.get_shader_program_index("Explode Effect shader"),
-        DrawNormals => gfx.get_shader_program_index("Draw Normals shader"),
-    };
-    let shd_id = gfx.shader_programs[shd_idx];
-    let uniform_block_idx = gl::GetUniformBlockIndex(
-        shd_id,
-        "Matrices\0".as_ptr() as *const i8, /* Rustfmt force vertical formatting */
-    );
-    gl::UniformBlockBinding(shd_id, uniform_block_idx, 0);
-
     match opt {
         Houses => {
+            let shd_idx = gfx.get_shader_program_index("Geometry Shader Use 1");
             gl::UseProgram(gfx.shader_programs[shd_idx]);
             let model_mat = Matrix4x4::identity_matrix();
             gfx.set_uniform_mat4x4("model_mat", shd_idx, &model_mat);
@@ -75,14 +64,7 @@ pub unsafe fn setup_geometry_shd_use(gfx: &GlData, model: &mut Model, opt: GeomS
         }
     }
     if let DrawNormals = opt {
-        let shd_idx = gfx.get_shader_program_index("UB Default shader");
-        let shd_id = gfx.shader_programs[shd_idx];
-        let uniform_block_idx = gl::GetUniformBlockIndex(
-            shd_id,
-            "Matrices\0".as_ptr() as *const i8, /* Rustfmt force vertical formatting */
-        );
-        gl::UniformBlockBinding(shd_id, uniform_block_idx, 0);
+        gl::Enable(gl::BLEND);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
     }
-    gl::Enable(gl::BLEND);
-    gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 }

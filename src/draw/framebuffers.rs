@@ -274,7 +274,7 @@ pub unsafe fn create_framebuffer(
         tex_mag_filter as i32,
     );
     use gl::{
-        COLOR_ATTACHMENT0, /*... */
+        COLOR_ATTACHMENT0, COLOR_ATTACHMENT1, COLOR_ATTACHMENT2, /*... */
         DEPTH_ATTACHMENT, DEPTH_STENCIL_ATTACHMENT, STENCIL_ATTACHMENT,
     };
     gl::FramebufferTexture2D(

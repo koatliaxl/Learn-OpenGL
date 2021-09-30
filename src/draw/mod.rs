@@ -36,7 +36,7 @@ use Draw::*;
 
 pub const IDENTITY_MATRIX: Matrix4x4<f32> = Matrix4x4::<f32>::IDENTITY_MATRIX;
 
-pub static DRAW: Draw = GeometryShaderUse(Houses);
+pub static DRAW: Draw = GeometryShaderUse(ExplodeEffect);
 
 #[allow(unused)]
 pub enum Draw {
@@ -218,6 +218,9 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
         // and uniform blocks of the shaders have this value initially.
         // But for convenience and in case...
         bind_uniform_block("Matrices", "UB Default shader", 0, gfx);
+        bind_uniform_block("Matrices", "Geometry Shader Use 1", 0, gfx);
+        bind_uniform_block("Matrices", "Explode Effect shader", 0, gfx);
+        bind_uniform_block("Matrices", "Draw Normals shader", 0, gfx);
         bind_uniform_block("Matrices", "Instancing shader", 0, gfx);
         bind_uniform_block("Matrices", "UBO Use shader 2", 0, gfx);
         bind_uniform_block("Matrices", "Advanced Lighting shader", 0, gfx);
