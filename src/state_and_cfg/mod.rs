@@ -32,14 +32,14 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(window_size: (i32, i32)) -> State {
+    pub fn new(window_size: (i32, i32), cfg: &Config) -> State {
         State {
             zoom: 1.0,
             mix: 0.0,
             time_since_last_press: Instant::now(),
             field_of_view: 60.0,
             aspect_ratio: 1.0,
-            camera: Camera::new(),
+            camera: Camera::new(cfg.initial_camera_speed),
             last_cursor_pos: (window_size.0 as f64 / 2.0, window_size.1 as f64 / 2.0),
             /*ambient_light_strength: 0.1,
             diffuse_light_strength: 1.0,
@@ -79,12 +79,16 @@ impl State {
 
 pub struct Config {
     pub repeat_delay: Duration,
+    pub initial_camera_speed: f32,
 }
+
+const DEFAULT_CAMERA_SPEED: f32 = 7.5;
 
 impl Config {
     pub fn new() -> Config {
         Config {
             repeat_delay: Duration::from_millis(30),
+            initial_camera_speed: DEFAULT_CAMERA_SPEED,
         }
     }
 }

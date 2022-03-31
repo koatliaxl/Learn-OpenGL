@@ -4,6 +4,7 @@ gl/bindings.rs
 *.lock
 target/
 #*.iml
+config.txt
 assets/backpack/
 assets/metal.png
 assets/marble.jpg

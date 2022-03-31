@@ -13,7 +13,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new() -> Camera {
+    pub fn new(initial_speed: f32) -> Camera {
         let position = Vector3::new(0.0, 0.0, 3.0);
         let direction = Vector3::new(0.0, 0.0, -1.0);
         let world_up_direction = Vector3::new(0.0, 1.0, 0.0);
@@ -29,7 +29,7 @@ impl Camera {
             world_up_direction,
             yaw: -90.0,
             pitch: 0.0,
-            speed: 100.0,
+            speed: initial_speed,
         }
     }
 

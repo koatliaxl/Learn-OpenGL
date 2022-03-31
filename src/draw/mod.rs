@@ -36,7 +36,7 @@ use Draw::*;
 
 pub const IDENTITY_MATRIX: Matrix4x4<f32> = Matrix4x4::<f32>::IDENTITY_MATRIX;
 
-pub static DRAW: Draw = GeometryShaderUse(Houses);
+pub static DRAW: Draw = NormalMapping;
 
 #[allow(unused)]
 pub enum Draw {
@@ -179,10 +179,10 @@ pub fn init_draw(gfx: &mut GlData, model: &mut Model, window: &Window, state: &m
             }
             BlinnPhongLighting => setup_blinn_phong_lighting(gfx),
             GammaCorrection => setup_gamma_correction(gfx, state),
-            ShadowMapping => setup_shadow_mapping(gfx, true),
+            ShadowMapping => setup_shadow_mapping(gfx, false),
             PointShadows => {
                 setup_point_shadows(gfx);
-                state.camera.speed = 25.0
+                //state.camera.speed *= 0.25
             }
             NormalMapping => {
                 setup_normal_mapping(gfx, true);

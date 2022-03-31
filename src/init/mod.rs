@@ -71,4 +71,5 @@ pub fn init_open_gl(window: &mut Window) {
             println!("{}: {}", msg, value);
         }
     }
+    println!()
 }

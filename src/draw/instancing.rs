@@ -223,7 +223,7 @@ pub unsafe fn setup_instancing(gfx: &mut GlData, opt: InstancingOption, state: &
             }
         }
 
-        state.camera.speed = 30.0;
+        state.camera.speed *= 3.0;
         state.camera.position = Vector3::new(0.0, 3.0, 20.0);
     }
 }
